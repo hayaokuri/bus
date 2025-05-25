@@ -3,26 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="refresh" content="10"> <title>バス接近情報 {{ from_stop }} → {{ to_stop }}</title>
+    <title>バス接近情報 {{ from_stop }} → {{ to_stop }}</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 15px; background-color: #f0f2f5; color: #1c1e21; line-height: 1.6; }
-        .container { max-width: 600px; margin: 0 auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.1); }
-        h1 { font-size: 1.8em; color: #1877f2; margin-bottom: 5px; text-align: center; }
-        h2 { font-size: 1.3em; color: #333; margin-top: 25px; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px;}
-        .header-info p, .status-bar p { margin: 5px 0; font-size: 0.95em; }
-        .status-bar { background-color: #e7f3ff; padding: 10px; border-radius: 6px; margin-bottom: 20px; }
-        .weather-info { font-size: 0.9em; padding: 8px; background-color: #f9f9f9; border: 1px solid #eee; border-radius: 4px; margin-bottom:15px;}
-        .weather-info strong { color: #3578e5; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            margin: 15px; 
+            background-color: #f0f2f5; 
+            color: #1c1e21; 
+            line-height: 1.6; 
+        }
+        .container { 
+            max-width: 700px; /* 少し幅を広げました */
+            margin: 20px auto; 
+            background-color: #fff; 
+            padding: 25px; 
+            border-radius: 10px; /* 角を少し丸く */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+        }
+        h1 { 
+            font-size: 2em; /* 少し大きく */
+            color: #0d6efd; /* Bootstrap primary color */
+            margin-bottom: 10px; 
+            text-align: center; 
+            border-bottom: 2px solid #0d6efd;
+            padding-bottom: 10px;
+        }
+        h2 { 
+            font-size: 1.4em; 
+            color: #343a40; /* Bootstrap dark color */
+            margin-top: 30px; 
+            margin-bottom: 15px; 
+            border-bottom: 1px solid #dee2e6; 
+            padding-bottom: 8px;
+        }
+        .header-info p, .status-bar p { 
+            margin: 6px 0; 
+            font-size: 1em; 
+        }
+        .status-bar { 
+            background-color: #e9ecef; /* Bootstrap light gray */
+            padding: 12px; 
+            border-radius: 6px; 
+            margin-bottom: 25px; 
+            border: 1px solid #ced4da;
+        }
+        .weather-info { 
+            font-size: 0.95em; 
+            padding: 10px 12px; 
+            background-color: #e0f7fa; /* Light cyan */
+            border: 1px solid #b2ebf2; /* Cyan border */
+            border-radius: 6px; 
+            margin-bottom: 20px;
+        }
+        .weather-info strong { color: #00796b; } /* Darker cyan */
         .bus-list { list-style: none; padding: 0; }
-        .bus-item { background-color: #f7f7f7; border: 1px solid #ddd; padding: 12px; margin-bottom: 10px; border-radius: 6px; }
-        .bus-item.urgent { border-left: 5px solid #fa383e; background-color: #ffebee; color: #c62828; font-weight: bold;}
-        .bus-item strong { font-size: 1.1em; }
-        .bus-item .details { font-size: 0.9em; color: #555; margin-left: 20px;}
-        .error-message { color: #fa383e; font-weight: bold; background-color: #ffebee; padding: 10px; border-radius: 4px; }
-        .info-message { color: #3578e5; font-weight: bold; background-color: #e7f3ff; padding: 10px; border-radius: 4px;}
-        .footer { font-size: 0.8em; color: #606770; margin-top: 30px; text-align: center; }
-        .footer p { margin: 3px 0; }
-        .urgent-text { color: #fa383e; font-weight: bold; }
+        .bus-item { 
+            background-color: #fff; 
+            border: 1px solid #e0e0e0; 
+            padding: 15px; 
+            margin-bottom: 12px; 
+            border-radius: 8px; 
+            transition: box-shadow 0.2s ease-in-out;
+        }
+        .bus-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .bus-item.urgent { 
+            border-left: 6px solid #d32f2f; /* Stronger red */
+            background-color: #ffebee; 
+        }
+        .bus-item.urgent strong, .bus-item.urgent .time-until-text {
+            color: #c62828; /* Darker red for text */
+            font-weight: bold;
+        }
+        .bus-item strong { font-size: 1.15em; }
+        .bus-item .details { font-size: 0.9em; color: #495057; margin-left: 20px; margin-top: 5px;}
+        .error-message { 
+            color: #d32f2f; 
+            font-weight: bold; 
+            background-color: #ffcdd2; /* Lighter red */
+            padding: 12px; 
+            border-radius: 6px; 
+            border: 1px solid #ef9a9a;
+        }
+        .info-message { 
+            color: #0d6efd; 
+            background-color: #cfe2ff; /* Lighter blue */
+            padding: 12px; 
+            border-radius: 6px;
+            border: 1px solid #b6d4fe;
+        }
+        .footer { 
+            font-size: 0.85em; 
+            color: #6c757d; 
+            margin-top: 35px; 
+            text-align: center; 
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+        .footer p { margin: 4px 0; }
+        .urgent-text { color: #d32f2f; font-weight: bold; }
+        .time-until-text { font-weight: normal; color: #333; } /* 通常の残り時間の色 */
     </style>
 </head>
 <body>
@@ -30,7 +111,7 @@
         <h1>バス接近情報</h1>
         <div class="header-info">
             <p><strong>区間:</strong> {{ from_stop }} → {{ to_stop }}</p>
-            <p><strong>現在時刻:</strong> {{ current_time_str }}</p>
+            <p><strong>現在時刻:</strong> <span id="current-time-display">時刻取得中...</span></p>
         </div>
 
         {% if weather_data %}
@@ -39,6 +120,7 @@
                     <p class="error-message">天気情報: {{ weather_data.error_message }}</p>
                 {% elif weather_data.condition %}
                     <p><strong>伊勢原の天気:</strong> {{ weather_data.description if weather_data.description else weather_data.condition }}
+                       {% if weather_data.temp_c is not none %} ({{ "%.1f"|format(weather_data.temp_c) }}℃) {% endif %}
                        {% if weather_data.is_rain %} <span class="urgent-text">傘を忘れずに！</span> {% endif %}
                     </p>
                 {% else %}
@@ -52,7 +134,7 @@
         </div>
 
         <h2>【今後のバス】</h2>
-        <p><small>バス情報最終更新: {{ bus_last_updated_str }}</small></p>
+        <p><small>バス情報最終更新: <span id="bus-last-updated">{{ bus_last_updated_str }}</span></small></p>
 
         {% if bus_error_message %}
             <p class="error-message">バス情報取得エラー: {{ bus_error_message }}</p>
@@ -67,7 +149,7 @@
                             {% elif "(遅延可能性あり)" in bus.departure_time %} (遅延可能性あり)
                             {% endif %}
                             {% if bus.time_until_departure and bus.time_until_departure not in bus.departure_time %}
-                                ({{ bus.time_until_departure }})
+                                <span class="time-until-text">({{ bus.time_until_departure }})</span>
                             {% endif %}
                         </p>
                         {% if "予定通り発車します" in bus.status_text %}
@@ -76,13 +158,134 @@
                     </li>
                 {% endfor %}
             </ul>
+        {% elif app_state_message == '始発バス待機中 (早朝)' or app_state_message.startswith('始発バス待機中') %}
+             <p class="info-message">バスの運行情報を確認中です...</p>
+        {% elif app_state_message == '運行再開待機中 (終バス後など)' %}
+             <p class="info-message">バス運行再開待機中...</p>
         {% else %}
-            <p class="info-message">現在、利用可能なバス情報はありません。</p>
+            <p class="info-message">現在、利用可能なバス情報はありません。
+                {% if no_bus_info_count is defined and no_bus_info_count > 0 and no_bus_threshold is defined %}
+                    (試行 {{no_bus_info_count}}/{{no_bus_threshold}})
+                {% endif %}
+            </p>
         {% endif %}
     </div>
 
     <div class="footer">
-        <p>このページは10秒ごとに自動更新されます。</p>
+        <p id="next-fetch-info">バス情報はサーバー側で定期的に更新されます。</p>
+        <p><small>(表示は1秒毎更新, Ctrl+Cでターミナルのスクリプトを終了)</small></p>
     </div>
+
+    <script>
+        function updateCurrentTime() {
+            const timeDisplay = document.getElementById('current-time-display');
+            if (timeDisplay) {
+                const now = new Date();
+                // 日本時間で表示 (ブラウザのタイムゾーン設定に依存しないように)
+                const options = {
+                    year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit',
+                    hour12: false,
+                    timeZone: 'Asia/Tokyo'
+                };
+                try {
+                    // Intl.DateTimeFormat を使ってより正確なフォーマットを試みる
+                    const formatter = new Intl.DateTimeFormat('ja-JP', options);
+                    // 個々のパーツを取得して結合 (ブラウザによって区切り文字が異なる場合があるため)
+                    const parts = formatter.formatToParts(now);
+                    let year, month, day, hour, minute, second, timeZoneName = "JST"; // デフォルト
+                    parts.forEach(part => {
+                        if (part.type === 'year') year = part.value;
+                        if (part.type === 'month') month = part.value;
+                        if (part.type === 'day') day = part.value;
+                        if (part.type === 'hour') hour = part.value;
+                        if (part.type === 'minute') minute = part.value;
+                        if (part.type === 'second') second = part.value;
+                        // timeZoneName は ja-JP だと JST にならない場合があるので固定
+                    });
+                     if (year && month && day && hour && minute && second) {
+                        timeDisplay.textContent = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')} ${hour.padStart(2, '0')}:${minute.padStart(2, '0')}:${second.padStart(2, '0')} ${timeZoneName}`;
+                    } else { // フォールバック
+                        timeDisplay.textContent = now.toLocaleString('sv-SE', { timeZone: 'Asia/Tokyo' }) + " JST"; // スウェーデン形式が YYYY-MM-DD HH:MM:SS に近い
+                    }
+                } catch (e) { 
+                    console.warn("Intl.DateTimeFormat not fully supported for custom formatting, falling back to toLocaleString for time.");
+                    // よりシンプルなフォールバック
+                    letjstHours = (now.getUTCHours() + 9) % 24; // JSTはUTC+9
+                    timeDisplay.textContent = 
+                        now.getUTCFullYear() + '-' +
+                        ('0' + (now.getUTCMonth() + 1)).slice(-2) + '-' +
+                        ('0' + now.getUTCDate()).slice(-2) + ' ' +
+                        ('0' + jstHours).slice(-2) + ':' +
+                        ('0' + now.getUTCMinutes()).slice(-2) + ':' +
+                        ('0' + now.getUTCSeconds()).slice(-2) + ' JST';
+                }
+            }
+        }
+
+        // 1秒ごとに時刻を更新
+        setInterval(updateCurrentTime, 1000);
+        
+        // 初回実行
+        updateCurrentTime();
+
+        // 10秒ごとにページ全体をリロードしてバス情報と天気情報をサーバーから再取得
+        // (DISPLAY_REFRESH_INTERVAL_SECONDS はPython側で1秒になっているが、
+        //  バス情報自体の更新は10秒間隔なので、ページリロードもそれに合わせるのが合理的)
+        //  もしバス情報も1秒ごとに更新したい場合は、Ajax/Fetch APIによる非同期更新が必要
+        const pageReloadInterval = parseInt("{{ config.get('ACTIVE_DATA_FETCH_INTERVAL', 10) }}", 10) * 1000;
+        
+        // リロード間隔が1秒より大きい場合のみ設定 (1秒リロードは負荷が高いため)
+        if (pageReloadInterval > 1000) {
+            setTimeout(function(){
+               window.location.reload(true);
+            }, pageReloadInterval);
+            
+            const nextFetchInfoEl = document.getElementById('next-fetch-info');
+            if(nextFetchInfoEl) {
+                 nextFetchInfoEl.textContent = `バス・天気情報は約${pageReloadInterval/1000}秒間隔でサーバーから再取得します。`;
+            }
+        } else {
+            const nextFetchInfoEl = document.getElementById('next-fetch-info');
+            if(nextFetchInfoEl) {
+                 nextFetchInfoEl.textContent = `バス・天気情報は高頻度でサーバーから再取得設定です。`;
+            }
+        }
+
+    </script>
 </body>
 </html>
+```
+
+**主な変更点と説明:**
+
+1.  **`<meta http-equiv="refresh">` の削除:**
+    * ページ全体の自動リフレッシュは、`<body>` の最後にあるJavaScriptの `setTimeout(function(){ window.location.reload(true); }, pageReloadInterval);` で制御するようにしました。
+    * `pageReloadInterval` は、Flaskから渡される `config.get('ACTIVE_DATA_FETCH_INTERVAL', 10)` (デフォルト10秒) をミリ秒に変換した値です。これにより、Python側のデータ取得間隔とHTMLの更新間隔をある程度連動させることができます。
+2.  **現在時刻表示 (`<span id="current-time-display">`)**
+    * 初期値はFlaskから渡された `current_time_str` が表示されますが、すぐにJavaScriptによってリアルタイムの日本時間に置き換えられます。
+3.  **JavaScript (`<script>` タグ内):**
+    * `updateCurrentTime()`:
+        * 1秒ごとに呼び出され、`current-time-display` の内容を現在の日本時間に更新します。
+        * `Intl.DateTimeFormat` を使って `YYYY-MM-DD HH:MM:SS JST` の形式で表示しようと試みます。ブラウザの互換性を考慮し、フォールバックとして `toLocaleString` やUTCベースの計算も入れています。
+    * `setInterval(updateCurrentTime, 1000)`: `updateCurrentTime` を1秒ごとに実行します。
+    * `setTimeout` によるページリロード: `pageReloadInterval`（デフォルト10秒）後にページ全体をリロードし、サーバーから最新のバス情報と天気情報を取得します。
+4.  **CSSの微調整:**
+    * 全体的なデザインを少しモダンに見えるように調整しました（フォント、パディング、シャドウなど）。
+    * `.bus-item.urgent` のスタイルを少し強調しました。
+    * 天気情報の背景色などを調整しました。
+
+**Python側 (`main.py`) での変更の可能性:**
+
+* `index` ルートで `render_template` に渡すコンテキストに、`config` オブジェクト（Flaskの `app.config`）を含めるか、または `ACTIVE_DATA_FETCH_INTERVAL` の値を直接渡すようにすると、JavaScript側でリロード間隔を動的に設定できます。
+    ```python
+    # main.py の index ルート内
+    return render_template('index.html',
+                           # ... (他の変数) ...
+                           config={'ACTIVE_DATA_FETCH_INTERVAL': ACTIVE_DATA_FETCH_INTERVAL} 
+                          )
+    ```
+    そしてHTML側では `{{ config.ACTIVE_DATA_FETCH_INTERVAL }}` のように参照します。
+    （上記のHTML例では、`config.get('DISPLAY_REFRESH_SECONDS', 10)` となっていますが、これはFlaskの `app.config` に `DISPLAY_REFRESH_SECONDS` というキーで設定値がある場合の例です。より直接的には上記のように渡せます。）
+
+この修正版HTMLを使うことで、ページを開いている間、現在時刻は1秒ごとに更新され、バス情報や天気情報は約10秒ごとにサーバーから再取得されてページ全体が更新されるようになり
