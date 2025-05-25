@@ -309,7 +309,7 @@ if __name__ == '__main__':
         logging.warning("ローカルテスト: OpenWeatherMap APIキー未設定")
 
     app.run(host='127.0.0.1', port=8080, debug=True)
-```html
+html
 <!DOCTYPE html>
 <html lang="ja">
 <head>
