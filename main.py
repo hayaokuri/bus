@@ -4,14 +4,16 @@ from bs4 import BeautifulSoup
 import json
 import re
 import datetime
-import pytz
+import time # JavaScriptでのリアルタイム更新のため、Python側のtime.sleepは不要になる
 import os
+import pytz
 import logging
-import time
+import threading # バックグラウンド処理用
+# from apscheduler.schedulers.background import BackgroundScheduler # App EngineではCron Serviceを推奨
 
 # --- 設定 (環境変数から読み込むことを推奨) ---
 OPENWEATHERMAP_API_KEY = os.environ.get("OPENWEATHERMAP_API_KEY", "YOUR_OPENWEATHERMAP_API_KEY_HERE")
-# DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "YOUR_DISCORD_WEBHOOK_URL_HERE") # 必要に応じて
+DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "YOUR_DISCORD_WEBHOOK_URL_HERE")
 WEATHER_LOCATION = "Isehara,JP"
 BASE_URL = "http://real.kanachu.jp/pc/displayapproachinfo"
 FROM_STOP_NO = "18137"
@@ -25,7 +27,6 @@ BUS_SERVICE_START_MINUTE = 20
 
 TOKYO_TZ = pytz.timezone('Asia/Tokyo')
 
-# (キー名、ANSIエスケープシーケンスはコンソール版から流用、ただしHTMLではCSSで色付け)
 KEY_DEPARTURE_TIME = "departure_time"
 KEY_STATUS_TEXT = "status_text"
 KEY_TIME_UNTIL = "time_until_departure"
@@ -33,28 +34,42 @@ KEY_IS_URGENT = "is_urgent"
 
 app = Flask(__name__)
 
-# --- ロギング設定 (App Engineは標準でロギングを提供) ---
-# logging.basicConfig(level=logging.INFO) # ローカルテスト用
-# App Engine上では print() や logging が Cloud Logging に出力されます。
+# --- ロギング設定 ---
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(module)s - %(funcName)s - %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
 
-# === ここに既存の関数群を移植 ===
-# get_weather_info, fetch_simplified_bus_departure_times, 
-# calculate_and_format_time_until をコピー＆ペースト。
-# print() は app.logger.info() や logging.info() に置き換える。
-# Discord通知関数も必要なら移植。
+# --- グローバル変数 (App Engineではリクエストごとにリセットされるため、Datastore/Memcache推奨) ---
+# この例では、簡略化のためリクエストごとにデータを取得・キャッシュする形を維持
+weather_cache = {"data": None, "timestamp": 0, "error": None}
+bus_data_cache = {"data": [], "timestamp": 0, "error": None}
+weather_fetched_today_g = False # App Engineではリクエスト間で状態を保持しないため、このフラグはCronジョブ側で管理する方が良い
+last_date_weather_checked_g = None
 
-# (関数の内容は長いため、前の回答を参照してここに配置してください)
-# 例:
+WEATHER_CACHE_DURATION_SECONDS = 30 * 60
+BUS_DATA_CACHE_DURATION_SECONDS = 10 # バス情報のキャッシュ（兼データ取得間隔）
+
+# (send_discord_notification, get_weather_info, fetch_simplified_bus_departure_times, calculate_and_format_time_until は変更なしのため省略)
+def send_discord_notification(message):
+    if not DISCORD_WEBHOOK_URL or DISCORD_WEBHOOK_URL == "YOUR_DISCORD_WEBHOOK_URL_HERE":
+        logging.warning("Discord Webhook URLが未設定のため、通知は送信されません。")
+        return
+    payload = {"content": message, "username": os.environ.get("DISCORD_USERNAME", "バス情報チェッカー")}
+    headers = {"Content-Type": "application/json"}
+    try:
+        response = requests.post(DISCORD_WEBHOOK_URL, data=json.dumps(payload), headers=headers, timeout=5)
+        response.raise_for_status()
+        logging.info(f"Discord通知送信成功: {message[:50]}...")
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Discord通知送信失敗: {e}")
+    except Exception as e:
+        logging.error(f"Discord通知送信中に予期せぬエラー: {e}")
+
 def get_weather_info(api_key, location_query):
-    # ... (前のコードから get_weather_info の内容をここに) ...
-    # 戻り値は (main_condition, description, error_message) とする
+    global weather_fetched_today_g # このグローバル変数の扱いはApp Engineでは注意
     if not api_key or api_key == "YOUR_OPENWEATHERMAP_API_KEY_HERE":
         logging.warning("OpenWeatherMap APIキーが未設定。")
         return None, None, "APIキー未設定"
-    # ... (実際のAPI呼び出しとエラー処理) ...
-    # ダミーデータ
-    # return "Clear", "快晴", None
-    # 実際のAPI呼び出し
     api_url = "http://api.openweathermap.org/data/2.5/weather"
     params = {"q": location_query, "appid": api_key, "units": "metric", "lang": "ja"}
     try:
@@ -64,20 +79,27 @@ def get_weather_info(api_key, location_query):
         if data.get("weather") and len(data["weather"]) > 0:
             main_condition = data["weather"][0].get("main")
             description = data["weather"][0].get("description")
-            # temp = data.get("main", {}).get("temp") # 必要なら温度も
-            return main_condition, description, None
-        return None, None, "APIレスポンス形式不正"
+            temp = data.get("main", {}).get("temp")
+            logging.info(f"天気情報取得成功 ({location_query}): {main_condition} ({description}), 気温: {temp}°C")
+            weather_fetched_today_g = True # App Engineではリクエストごとにリセットされる
+            return main_condition, description, temp, None # 温度も返すように変更
+        return None, None, None, "APIレスポンス形式不正"
+    except requests.exceptions.Timeout:
+        logging.warning(f"天気情報取得タイムアウト ({location_query})")
+        return None, None, None, "タイムアウト"
+    except requests.exceptions.HTTPError as http_err:
+        error_message = f"HTTPエラー {http_err.response.status_code}"
+        if http_err.response.status_code == 401:
+             error_message = "APIキーが無効か認証エラーです。"
+             # send_discord_notification(f"🚨 **天気APIエラー:** {error_message} 確認してください。") # エラー時は通知
+        logging.error(f"天気情報取得HTTPエラー ({location_query}): {http_err}")
+        return None, None, None, error_message
     except Exception as e:
-        logging.error(f"天気情報取得エラー: {e}")
-        return None, None, str(e)
-
+        logging.exception(f"天気情報取得中に予期せぬエラー ({location_query})")
+        # send_discord_notification(f"🚨 **天気API取得中の予期せぬエラー ({location_query}):** {e}") # エラー時は通知
+        return None, None, None, f"予期せぬエラー"
 
 def fetch_simplified_bus_departure_times(from_stop_no, to_stop_no):
-    # ... (前のコードから fetch_simplified_bus_departure_times の内容をここに) ...
-    # 戻り値は {"buses": list, "error": str_or_none} とする
-    # ダミーデータ
-    # return {"buses": [{"departure_time": "10:00発 (予定通り)", "status_text": "10:00発予定 予定通り発車します"}], "error": None}
-    # (実際の処理をここに記述)
     params = {'fNO': from_stop_no, 'tNO': to_stop_no}
     bus_departure_list = []
     try:
@@ -124,17 +146,14 @@ def fetch_simplified_bus_departure_times(from_stop_no, to_stop_no):
             if departure_time_str:
                 bus_departure_list.append({KEY_DEPARTURE_TIME: departure_time_str, KEY_STATUS_TEXT: title_text_raw})
         return {"buses": bus_departure_list, "error": None}
-    except Exception as e:
-        logging.error(f"バス情報取得エラー: {e}")
-        return {"buses": [], "error": str(e)}
+    except Exception as e: # より広範なエラーキャッチ
+        error_msg = f"バス情報取得エラー: {e}"
+        logging.error(error_msg)
+        # send_discord_notification(f"🛑 **バス情報取得エラー:** {error_msg}") # エラー時は通知
+        return {"buses": [], "error": error_msg}
 
 
 def calculate_and_format_time_until(departure_str, status_text_raw, current_dt_tokyo):
-    # ... (前のコードから calculate_and_format_time_until の内容をここに) ...
-    # 戻り値は (time_until_str, is_urgent) とする
-    # ダミーデータ
-    # return "あと10分", False
-    # (実際の処理をここに記述)
     is_urgent = False 
     time_until_str = ""
     if "まもなく" in departure_str:
@@ -180,57 +199,72 @@ def calculate_and_format_time_until(departure_str, status_text_raw, current_dt_t
     return time_until_str, is_urgent
 # === ここまで既存の関数群 ===
 
-
-# --- グローバル変数 (App Engineではリクエストごとに状態がリセットされるため、Datastoreなどを検討) ---
-# 今回は簡略化のため、リクエストごとに天気とバス情報を取得する形にします。
-# より高度な実装では、これらの情報をDatastoreにキャッシュし、Cronジョブで更新します。
-weather_cache = {"data": None, "timestamp": 0, "error": None}
-bus_data_cache = {"data": [], "timestamp": 0, "error": None}
-
-WEATHER_CACHE_DURATION_SECONDS = 30 * 60 # 天気情報のキャッシュ期間 (30分)
-BUS_DATA_CACHE_DURATION_SECONDS = 10    # バス情報のキャッシュ期間 (10秒)
-
-
 @app.route('/')
 def index():
-    global weather_cache, bus_data_cache # キャッシュを読み書きするため
+    global weather_cache, bus_data_cache, weather_fetched_today_g, last_date_weather_checked_g # App Engineでは注意
 
     current_dt_tokyo = datetime.datetime.now(TOKYO_TZ)
     current_time_unix = time.time()
+    current_hour = current_dt_tokyo.hour
+    current_date = current_dt_tokyo.date()
 
-    # --- 天気情報の取得とキャッシュ ---
+    # --- 天気情報の取得とキャッシュ (9時台に1回) ---
     weather_data_to_display = {}
-    # 9時台にキャッシュを更新するロジック (またはキャッシュが古い場合)
-    if current_dt_tokyo.hour == WEATHER_FETCH_HOUR:
-        if current_time_unix - weather_cache["timestamp"] > WEATHER_CACHE_DURATION_SECONDS or not weather_cache["data"]:
-            logging.info("天気情報を更新します (9時台またはキャッシュ期限切れ)。")
-            condition, description, error = get_weather_info(OPENWEATHERMAP_API_KEY, WEATHER_LOCATION)
-            weather_cache["data"] = {"condition": condition, "description": description, "is_rain": (condition and condition.lower() == "rain")}
-            weather_cache["error"] = error
-            weather_cache["timestamp"] = current_time_unix
+    if last_date_weather_checked_g != current_date: # 日付が変わったらリセット
+        weather_fetched_today_g = False
+        last_date_weather_checked_g = current_date
+        logging.info(f"日付変更 ({current_date})。天気取得フラグ解除。")
+
+    if current_hour == WEATHER_FETCH_HOUR and not weather_fetched_today_g:
+        logging.info(f"{WEATHER_FETCH_HOUR}時台、天気情報更新試行。")
+        condition, description, temp, error = get_weather_info(OPENWEATHERMAP_API_KEY, WEATHER_LOCATION)
+        weather_cache["data"] = {"condition": condition, "description": description, "temp_c": temp, "is_rain": (condition and condition.lower() == "rain")}
+        weather_cache["error"] = error
+        weather_cache["timestamp"] = current_time_unix # キャッシュ時刻更新
+        if not error:
+            weather_fetched_today_g = True # 成功したらフラグを立てる
     
-    weather_data_to_display = weather_cache["data"] if weather_cache["data"] else {}
-    weather_data_to_display["error_message"] = weather_cache["error"]
+    weather_data_to_display = weather_cache["data"] if weather_cache.get("data") else {}
+    weather_data_to_display["error_message"] = weather_cache.get("error")
 
 
     # --- バス情報の取得とキャッシュ ---
-    # App Engine Standardでは、リクエストごとに処理が走るため、
-    # 毎リクエストでバス情報を取得するか、キャッシュを利用します。
-    # ここでは簡単な時間ベースのキャッシュを実装します。
-    # より堅牢な実装には Datastore + Cron を使います。
-    
     processed_buses = []
     bus_fetch_error = None
+    app_state_message = "監視中" # デフォルト
 
-    if current_time_unix - bus_data_cache["timestamp"] > BUS_DATA_CACHE_DURATION_SECONDS or not bus_data_cache["data"]:
+    # 運行開始時刻判定
+    is_before_service_hours = current_hour < BUS_SERVICE_START_HOUR or \
+                              (current_hour == BUS_SERVICE_START_HOUR and current_dt_tokyo.minute < BUS_SERVICE_START_MINUTE)
+
+    if is_before_service_hours:
+        app_state_message = f"始発バス待機中 (～{BUS_SERVICE_START_HOUR:02d}:{BUS_SERVICE_START_MINUTE:02d}目安)"
+        # 早朝はバス情報を取得しない（キャッシュも更新しない）
+        # ただし、表示のために最後に成功したキャッシュを使うことはできる
+        if bus_data_cache.get("data"): # 前日の最終情報などが残っていればそれを使う
+            for bus_info_original in bus_data_cache["data"]:
+                bus_info = bus_info_original.copy()
+                # 残り時間は現在の時刻で再計算
+                time_until_str, is_urgent = calculate_and_format_time_until(
+                    bus_info.get(KEY_DEPARTURE_TIME, ""),
+                    bus_info.get(KEY_STATUS_TEXT, ""),
+                    current_dt_tokyo
+                )
+                bus_info[KEY_TIME_UNTIL] = time_until_str
+                bus_info[KEY_IS_URGENT] = is_urgent
+                processed_buses.append(bus_info)
+        bus_fetch_error = bus_data_cache.get("error") # キャッシュされたエラーも表示
+
+    elif current_time_unix - bus_data_cache.get("timestamp", 0) > BUS_DATA_CACHE_DURATION_SECONDS \
+         or not bus_data_cache.get("data"): # キャッシュ切れまたはデータなし
         logging.info("バス情報を更新します (キャッシュ期限切れまたは初回)。")
         bus_result = fetch_simplified_bus_departure_times(FROM_STOP_NO, TO_STOP_NO)
         bus_data_cache["data"] = bus_result.get("buses", [])
         bus_data_cache["error"] = bus_result.get("error")
         bus_data_cache["timestamp"] = current_time_unix
-
-    bus_fetch_error = bus_data_cache["error"]
-    if bus_data_cache["data"]:
+    
+    bus_fetch_error = bus_data_cache.get("error")
+    if bus_data_cache.get("data"):
         for bus_info_original in bus_data_cache["data"]:
             bus_info = bus_info_original.copy()
             time_until_str, is_urgent = calculate_and_format_time_until(
@@ -241,30 +275,17 @@ def index():
             bus_info[KEY_TIME_UNTIL] = time_until_str
             bus_info[KEY_IS_URGENT] = is_urgent
             processed_buses.append(bus_info)
-
-    # --- アプリケーションの状態判定 (簡略版) ---
-    app_state_message = "監視中"
-    current_hour = current_dt_tokyo.hour
-    current_minute = current_dt_tokyo.minute
-
-    if current_hour < BUS_SERVICE_START_HOUR or \
-       (current_hour == BUS_SERVICE_START_HOUR and current_minute < BUS_SERVICE_START_MINUTE):
-        app_state_message = f"始発バス待機中 (～{BUS_SERVICE_START_HOUR:02d}:{BUS_SERVICE_START_MINUTE:02d}目安)"
-        if not bus_fetch_error and not processed_buses: # 早朝でまだバスがない場合
-             pass # processed_buses が空なのでHTML側で「情報なし」と表示される
-    elif bus_fetch_error:
-        app_state_message = "エラー発生中"
-    elif not processed_buses:
-        # 終バス後の可能性。より正確には、fetchで情報が取れなかった回数をカウントするが、
-        # App Engine Standardではリクエストごとに状態がリセットされるため難しい。
-        # ここでは単純に「情報なし」とする。Cronで状態を管理するのが望ましい。
+    
+    if not is_before_service_hours and not bus_fetch_error and not processed_buses:
+        # 運行時間中のはずなのにバス情報がない場合は「終バス後」の可能性
         app_state_message = "情報なし/運行終了の可能性"
 
 
     return render_template('index.html',
                            from_stop=FROM_STOP_NAME,
                            to_stop=TO_STOP_NAME,
-                           current_time_str=current_dt_tokyo.strftime('%Y-%m-%d %H:%M:%S %Z'),
+                           current_time_unix=int(current_time_unix * 1000), # JavaScript用にミリ秒で渡す
+                           current_time_zone_offset_minutes=current_dt_tokyo.utcoffset().total_seconds() // 60, # JavaScriptのタイムゾーンオフセット用
                            weather_data=weather_data_to_display,
                            app_state_message=app_state_message,
                            buses_to_display=processed_buses,
@@ -273,5 +294,93 @@ def index():
                            )
 
 if __name__ == '__main__':
-    # ローカルでの開発サーバー起動 (App Engineデプロイ時はGunicornなどが使われる)
+    # App Engineデプロイ時はGunicornが起動するため、この部分はローカル開発用
+    # ただし、App Engine Standardでは、このファイルが直接実行されるわけではない。
+    # entrypoint (例: gunicorn -b :$PORT main:app) が app オブジェクトを見つけて起動する。
+    # したがって、バックグラウンドタスクの起動はここではなく、
+    # アプリケーションの初期化時や、別のメカニズム (例: Cron Service) で行うのが一般的。
+    # このサンプルでは、簡単のためリクエストごとにデータを取得・キャッシュする形にしている。
+    # 本格的なバックグラウンド更新はCron Service + Datastore/Memcacheを検討。
+    
+    # ローカルテスト用
+    if not DISCORD_WEBHOOK_URL or DISCORD_WEBHOOK_URL == "YOUR_DISCORD_WEBHOOK_URL_HERE":
+        logging.warning("ローカルテスト: Discord Webhook URL未設定")
+    if not OPENWEATHERMAP_API_KEY or OPENWEATHERMAP_API_KEY == "YOUR_OPENWEATHERMAP_API_KEY_HERE":
+        logging.warning("ローカルテスト: OpenWeatherMap APIキー未設定")
+
     app.run(host='127.0.0.1', port=8080, debug=True)
+```html
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>バス接近情報 {{ from_stop }} → {{ to_stop }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 15px; background-color: #f0f2f5; color: #1c1e21; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.1); }
+        h1 { font-size: 1.8em; color: #1877f2; margin-bottom: 5px; text-align: center; }
+        h2 { font-size: 1.3em; color: #333; margin-top: 25px; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px;}
+        .header-info p, .status-bar p { margin: 5px 0; font-size: 0.95em; }
+        .status-bar { background-color: #e7f3ff; padding: 10px; border-radius: 6px; margin-bottom: 20px; }
+        .weather-info { font-size: 0.9em; padding: 8px; background-color: #f9f9f9; border: 1px solid #eee; border-radius: 4px; margin-bottom:15px;}
+        .weather-info strong { color: #3578e5; }
+        .bus-list { list-style: none; padding: 0; }
+        .bus-item { background-color: #f7f7f7; border: 1px solid #ddd; padding: 12px; margin-bottom: 10px; border-radius: 6px; }
+        .bus-item.urgent { border-left: 5px solid #fa383e; background-color: #ffebee; color: #c62828; font-weight: bold;}
+        .bus-item strong { font-size: 1.1em; }
+        .bus-item .details { font-size: 0.9em; color: #555; margin-left: 20px;}
+        .error-message { color: #fa383e; font-weight: bold; background-color: #ffebee; padding: 10px; border-radius: 4px; }
+        .info-message { color: #3578e5; font-weight: bold; background-color: #e7f3ff; padding: 10px; border-radius: 4px;}
+        .footer { font-size: 0.8em; color: #606770; margin-top: 30px; text-align: center; }
+        .footer p { margin: 3px 0; }
+        .urgent-text { color: #fa383e; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>バス接近情報</h1>
+        <div class="header-info">
+            <p><strong>区間:</strong> {{ from_stop }} → {{ to_stop }}</p>
+            <p><strong>現在時刻:</strong> <span id="current-time-display">{{ current_time_str }}</span></p>
+        </div>
+
+        {% if weather_data %}
+            <div class="weather-info">
+                {% if weather_data.error_message %}
+                    <p class="error-message">天気情報: {{ weather_data.error_message }}</p>
+                {% elif weather_data.condition %}
+                    <p><strong>伊勢原の天気:</strong> {{ weather_data.description if weather_data.description else weather_data.condition }}
+                       {% if weather_data.temp_c is not none %} ({{ "%.1f"|format(weather_data.temp_c) }}℃) {% endif %}
+                       {% if weather_data.is_rain %} <span class="urgent-text">傘を忘れずに！</span> {% endif %}
+                    </p>
+                {% else %}
+                     <p>天気情報なし</p>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <div class="status-bar">
+            <p><strong>現在の状態:</strong> {{ app_state_message }}</p>
+        </div>
+
+        <h2>【今後のバス】</h2>
+        <p><small>バス情報最終更新: <span id="bus-last-updated">{{ bus_last_updated_str }}</span></small></p>
+
+        {% if bus_error_message %}
+            <p class="error-message">バス情報取得エラー: {{ bus_error_message }}</p>
+        {% elif buses_to_display %}
+            <ul class="bus-list">
+                {% for bus in buses_to_display %}
+                    <li class="bus-item {% if bus.is_urgent %}urgent{% endif %}">
+                        <p>
+                            <strong>{{ loop.index }}. {{ bus.departure_time.replace("(予定通り)", "").replace("(予定)","").replace("(遅延可能性あり)","").strip() }}</strong>
+                            {% if "(予定通り)" in bus.departure_time %} (予定通り)
+                            {% elif "(予定)" in bus.departure_time %} (予定)
+                            {% elif "(遅延可能性あり)" in bus.departure_time %} (遅延可能性あり)
+                            {% endif %}
+                            {% if bus.time_until_departure and bus.time_until_departure not in bus.departure_time %}
+                                <span class="time-until">(<span class="dynamic-time-until" data-departure="{{bus.departure_time}}" data-status="{{bus.status_text}}">{{ bus.time_until_departure }}</span>)</span>
+                            {% endif %}
+                        </p>
+              
