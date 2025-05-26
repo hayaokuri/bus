@@ -120,6 +120,52 @@
             color: #fff;
             background-color: #0d6efd;
         }
+        .direction-selector {
+        display: flex; /* Flexbox を利用 */
+        flex-wrap: wrap; /* 小さな画面で折り返すようにする */
+        justify-content: center; /* 中央揃え */
+        align-items: center; /* 垂直方向も中央揃え */
+        gap: 10px; /* アイテム間の隙間 */
+        text-align: center; 
+        margin-bottom: 15px;
+    }
+    .direction-selector a, .direction-selector strong {
+        padding: 8px 12px; /* 少しパディングを調整 */
+        text-decoration: none;
+        border-radius: 4px;
+        white-space: nowrap; /* ボタン内でテキストが改行しないように */
+        display: inline-block; /* displayをinline-blockに */
+    }
+    .direction-selector a {
+        color: #0d6efd;
+        background-color: #e9ecef;
+    }
+    .direction-selector a:hover {
+        background-color: #ced4da;
+    }
+    .direction-selector strong {
+        color: #fff;
+        background-color: #0d6efd;
+    }
+
+    /* スマートフォン向けのスタイル調整 (例: 画面幅が600px以下の場合) */
+    @media (max-width: 600px) {
+        .direction-selector {
+            flex-direction: column; /* 縦積みに変更 */
+            gap: 8px; /* 縦積みの際の隙間を調整 */
+        }
+        .direction-selector a, .direction-selector strong {
+            width: 80%; /* 幅を広げてタップしやすくする */
+            max-width: 280px; /* 最大幅を設定 */
+            box-sizing: border-box; /* paddingを含めて幅を計算 */
+        }
+        h1 {
+            font-size: 1.8em; /* スマホでは少し見出しを小さく */
+        }
+        .container {
+            padding: 15px; /* スマホではコンテナのパディングを少し小さく */
+        }
+    }
     </style>
 </head>
 <body>
