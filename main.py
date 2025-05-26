@@ -216,12 +216,11 @@ def index():
     
     # 傘警告表示の判断
     show_umbrella_warning = False
-    if weather_cache.get("has_rained_before_3pm_today"):
-        show_umbrella_warning = True
-        logging.debug("傘警告表示: ON (理由: 15時までに雨が降ったため)")
-    elif weather_data_to_display.get("is_rain"): # 現在雨が降っている場合も警告
+    if weather_data_to_display.get("is_rain"): # 現在雨が降っている場合のみ警告
         show_umbrella_warning = True
         logging.debug("傘警告表示: ON (理由: 現在雨が降っているため)")
+            
+    weather_data_to_display["show_umbrella_warning"] = show_umbrella_warning
         
     weather_data_to_display["show_umbrella_warning"] = show_umbrella_warning
     
