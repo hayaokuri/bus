@@ -222,16 +222,22 @@ def index():
     global weather_cache, bus_data_cache, weather_fetched_today_g, last_date_weather_checked_g
 
     current_dt_tokyo = datetime.datetime.now(TOKYO_TZ)
-    current_time_unix_seconds = time.time() # Used for cache timestamping
+    current_time_unix_seconds = time.time()
     current_hour = current_dt_tokyo.hour
     current_date = current_dt_tokyo.date()
 
     # --- 天気情報の取得とキャッシュ (9時台に1回試行) ---
-    weather_data_to_display = {}
-    if last_date_weather_checked_g != current_date:
-        weather_fetched_today_g = False
-        last_date_weather_checked_g = current_date
-        logging.info(f"日付変更 ({current_date})。天気取得フラグ解除。")
+# weather_data_to_display が確実に辞書であることを保証します。
+    cached_weather_data = weather_cache.get("data")
+    if isinstance(cached_weather_data, dict):
+        # キャッシュに有効な辞書データがあれば、それをコピーして使用します。
+        weather_data_to_display = cached_weather_data.copy()
+    else:
+        # そうでなければ、空の辞書として初期化します。
+        weather_data_to_display = {}
+    
+    # これで weather_data_to_display は必ず辞書なので、安全にキーを指定して代入できます。
+    weather_data_to_display["error_message"] = weather_cache.get("error")
 
     # Try to fetch weather if it's the designated hour AND (we haven't fetched today OR cache is old)
     # In a stateless env, weather_fetched_today_g might reset. Cache helps reduce redundant calls.
