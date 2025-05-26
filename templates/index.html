@@ -121,7 +121,7 @@
                 {% elif weather_data.condition %}
                     <p><strong>伊勢原の天気:</strong> {{ weather_data.description if weather_data.description else weather_data.condition }}
                        {% if weather_data.temp_c is not none %} ({{ "%.1f"|format(weather_data.temp_c) }}℃) {% endif %}
-                       {% if weather_data.is_rain %} <span class="urgent-text">傘を忘れずに！</span> {% endif %}
+                       {% if weather_data.show_umbrella_warning %} <span class="urgent-text">傘を忘れずに！</span> {% endif %} {# <-- ここを変更 #}
                        <br><small> (最終取得: {{ weather_data.last_updated_readable if weather_data.last_updated_readable else 'N/A' }})</small>
                     </p>
                 {% else %}
