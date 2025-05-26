@@ -7,6 +7,7 @@ import datetime
 import pytz
 import os
 import logging
+import time
 
 # --- 設定 (環境変数から読み込むことを推奨) ---
 OPENWEATHERMAP_API_KEY = os.environ.get("OPENWEATHERMAP_API_KEY", "YOUR_OPENWEATHERMAP_API_KEY_HERE")
