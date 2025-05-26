@@ -156,8 +156,7 @@
                                 {% if bus.time_until_departure %}({{ bus.time_until_departure }}){% endif %}
                             </span>
                         </p>
-                        {# Removed specific "予定通り発車します" paragraph as status_text and countdown will cover it #}
-                         <p class="details">{{ bus.status_text }}</p> </li>
+                        {# Removed specific "予定通り発車します" paragraph as status_text and countdown will cover it #}</li>
                 {% endfor %}
             </ul>
         {% elif app_state_message == '始発バス待機中 (早朝)' or app_state_message.startswith('始発バス待機中') %}
@@ -171,7 +170,6 @@
 
     <div class="footer">
         <p id="next-fetch-info">バス情報はサーバー側で定期的に更新されます。</p>
-        <p><small>(時刻表示は1秒毎更新)</small></p>
     </div>
 
     <script>
