@@ -215,7 +215,7 @@
         </div>
 
         <h2>【今後のバス】</h2>
-        <p><small>サーバー最終バス情報更新: <span id="bus-last-updated">{{ bus_last_updated_str }}</span></small></p>
+        <p><small>更新: <span id="bus-last-updated">{{ bus_last_updated_str }}</span></small></p>
 
         {% if bus_error_message %}
             <p class="error-message">バス情報取得エラー: {{ bus_error_message }}</p>
@@ -250,7 +250,6 @@
 
     <div class="footer">
         <p id="next-fetch-info">バス情報はサーバー側で定期的に更新されます。</p>
-        <p><small>(時刻表示は1秒毎更新)</small></p>
     </div>
 
     <div class="copyright">
