@@ -68,7 +68,7 @@ def send_discord_notification(message):
 
 def get_weather_info(api_key, location_query):
     # global weather_fetched_today_g # 削除
-    if not api_key or api_key == "YOUR_OPENWEATHERMAP_API_KEY_HERE":
+    if not api_key or api_key == "YOUR_OPENWEATHERMAP_API_KEY":
         logging.warning("OpenWeatherMap APIキーが未設定。")
         return None, None, None, "APIキー未設定"
     api_url = "http://api.openweathermap.org/data/2.5/weather"
