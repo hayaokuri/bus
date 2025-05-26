@@ -63,7 +63,7 @@
             padding: 15px; 
             margin-bottom: 12px; 
             border-radius: 8px; 
-            transition: box-shadow 0.2s ease-in-out, border-left-color 0.3s ease; /* Added border-left-color transition */
+            transition: box-shadow 0.2s ease-in-out, border-left-color 0.3s ease;
         }
         .bus-item:hover {
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -72,12 +72,12 @@
             border-left: 6px solid #d32f2f; 
             background-color: #ffebee; 
         }
-        .bus-item.urgent strong, .bus-item.urgent .time-until-text-dynamic { /* Changed target class */
+        .bus-item.urgent strong, .bus-item.urgent .time-until-text-dynamic {
             color: #c62828;
             font-weight: bold;
         }
         .bus-item strong { font-size: 1.15em; }
-        .bus-item .details { font-size: 0.9em; color: #495057; margin-left: 20px; margin-top: 5px;}
+        /* .bus-item .details のスタイルは削除またはコメントアウト (詳細情報行を削除したため) */
         .error-message { 
             color: #d32f2f; 
             font-weight: bold; 
@@ -103,12 +103,38 @@
         }
         .footer p { margin: 4px 0; }
         .urgent-text { color: #d32f2f; font-weight: bold; }
-        .time-until-text-dynamic { font-weight: normal; color: #333; } /* Renamed class for JS target */
+        .time-until-text-dynamic { font-weight: normal; color: #333; }
+        .direction-selector a, .direction-selector strong {
+            padding: 5px 10px;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .direction-selector a {
+            color: #0d6efd;
+            background-color: #e9ecef;
+        }
+        .direction-selector a:hover {
+            background-color: #ced4da;
+        }
+        .direction-selector strong {
+            color: #fff;
+            background-color: #0d6efd;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>バス接近情報</h1>
+        <div class="direction-selector" style="text-align: center; margin-bottom: 15px;">
+            {% if current_direction_id == route_sannodai_id %}
+                <strong>産業能率大学 → 伊勢原駅北口</strong> | 
+                <a href="?direction={{ route_isehara_id }}">伊勢原駅北口 → 産業能率大学</a>
+            {% else %}
+                <a href="?direction={{ route_sannodai_id }}">産業能率大学 → 伊勢原駅北口</a> | 
+                <strong>伊勢原駅北口 → 産業能率大学</strong>
+            {% endif %}
+        </div>
+
         <div class="header-info">
             <p><strong>区間:</strong> {{ from_stop }} → {{ to_stop }}</p>
             <p><strong>現在時刻:</strong> <span id="current-time-display">時刻取得中...</span></p>
@@ -121,7 +147,7 @@
                 {% elif weather_data.condition %}
                     <p><strong>伊勢原の天気:</strong> {{ weather_data.description if weather_data.description else weather_data.condition }}
                        {% if weather_data.temp_c is not none %} ({{ "%.1f"|format(weather_data.temp_c) }}℃) {% endif %}
-                       {% if weather_data.show_umbrella_warning %} <span class="urgent-text">傘を忘れずに！</span> {% endif %} {# <-- ここを変更 #}
+                       {% if weather_data.show_umbrella_warning %} <span class="urgent-text">傘を忘れずに！</span> {% endif %}
                        <br><small> (最終取得: {{ weather_data.last_updated_readable if weather_data.last_updated_readable else 'N/A' }})</small>
                     </p>
                 {% else %}
@@ -156,7 +182,8 @@
                                 {% if bus.time_until_departure %}({{ bus.time_until_departure }}){% endif %}
                             </span>
                         </p>
-                        {# Removed specific "予定通り発車します" paragraph as status_text and countdown will cover it #}</li>
+                        {# 詳細情報行 <p class="details">{{ bus.status_text }}</p> は削除済み #}
+                    </li>
                 {% endfor %}
             </ul>
         {% elif app_state_message == '始発バス待機中 (早朝)' or app_state_message.startswith('始発バス待機中') %}
@@ -170,6 +197,7 @@
 
     <div class="footer">
         <p id="next-fetch-info">バス情報はサーバー側で定期的に更新されます。</p>
+        <p><small>(時刻表示は1秒毎更新)</small></p>
     </div>
 
     <script>
@@ -201,12 +229,12 @@
                     }
                 } catch (e) { 
                     console.warn("Intl.DateTimeFormat failed, using fallback for current time.", e);
-                    const jstOffset = 9 * 60 * 60 * 1000; // JST is UTC+9
+                    const jstOffset = 9 * 60 * 60 * 1000;
                     const jstNow = new Date(now.getTime() + jstOffset);
                     timeDisplay.textContent = jstNow.toISOString().replace('T', ' ').substring(0, 19) + ' JST (UTC Calc)';
                 }
             }
-            updateAllBusCountdowns(); // Call bus countdown update here
+            updateAllBusCountdowns();
         }
         
         function updateAllBusCountdowns() {
@@ -218,13 +246,13 @@
                 if (!timeUntilSpan) return;
 
                 const departureTimestampUTC = parseInt(item.dataset.departureTimestampUtc, 10);
-                const rawDepartureText = item.dataset.rawDepartureText || ""; // Default to empty string
-                const statusText = item.dataset.statusText || ""; // Default to empty string
+                const rawDepartureText = item.dataset.rawDepartureText || "";
+                const statusText = item.dataset.statusText || "";
 
                 let newTimeUntilText = "";
                 let newIsUrgent = false;
 
-                if (isNaN(departureTimestampUTC) || departureTimestampUTC === 0) { // No valid timestamp
+                if (isNaN(departureTimestampUTC) || departureTimestampUTC === 0) {
                     if (rawDepartureText.includes("まもなく")) {
                         newTimeUntilText = "まもなく発車"; newIsUrgent = true;
                     } else if (rawDepartureText.includes("出発済み") || rawDepartureText.includes("通過しました")) {
@@ -232,13 +260,12 @@
                     } else if (statusText.includes("遅延可能性あり") || statusText.includes("頃発車します")){
                         newTimeUntilText = "遅延の可能性"; newIsUrgent = true;
                     } else if (statusText.includes("予定") && !rawDepartureText.match(/\d{1,2}:\d{2}/) ){
-                         newTimeUntilText = "時刻未定"; // For general "予定" without specific time
+                         newTimeUntilText = "時刻未定";
                     }
-                    // Otherwise, keep the server-rendered initial text (or it will be empty if no conditions met)
                 } else {
                     const remainingSeconds = departureTimestampUTC - nowTimestampUTC;
 
-                    if (rawDepartureText.includes("まもなく")) { // Original status was "まもなく"
+                    if (rawDepartureText.includes("まもなく")) {
                         newTimeUntilText = "まもなく発車"; newIsUrgent = true;
                     } else if (rawDepartureText.includes("出発済み") || rawDepartureText.includes("通過しました")) {
                         newTimeUntilText = "出発済み";
@@ -246,20 +273,20 @@
                         if (statusText.includes("出発しました") || statusText.includes("通過しました")) {
                             newTimeUntilText = "出発済み";
                         } else {
-                            newTimeUntilText = "発車時刻超過"; // Changed from "発車済みのおそれあり" to be less alarming for JS only update
+                            newTimeUntilText = "発車時刻超過";
                         }
                     } else if (remainingSeconds <= 15) {
                         newTimeUntilText = "まもなく発車"; newIsUrgent = true;
-                    } else if (remainingSeconds <= 180) { // 3 minutes
+                    } else if (remainingSeconds <= 180) {
                         const minutes = Math.floor(remainingSeconds / 60);
                         const seconds = remainingSeconds % 60;
                         newTimeUntilText = `あと${minutes}分${seconds.toString().padStart(2,'0')}秒`;
                         newIsUrgent = true;
                     } else {
-                        const minutes = Math.ceil(remainingSeconds / 60); // Use ceil for "あとX分"
+                        const minutes = Math.ceil(remainingSeconds / 60);
                         newTimeUntilText = `あと${minutes}分`;
                         if (statusText.includes("遅延可能性あり") || statusText.includes("頃発車します")) {
-                            newIsUrgent = true; // Maintain urgency if it's a delay
+                            newIsUrgent = true;
                         }
                     }
                 }
@@ -274,16 +301,20 @@
             });
         }
 
-        // Update current time and bus countdowns every second
         setInterval(updateCurrentTime, 1000);
-        updateCurrentTime(); // Initial call
+        updateCurrentTime();
 
-        // Page reload logic (30 seconds)
         const pageReloadInterval = parseInt("{{ config.ACTIVE_DATA_FETCH_INTERVAL }}", 10) * 1000 || 30000;
+        const currentUrl = new URL(window.location.href);
+        const currentDirectionParam = currentUrl.searchParams.get('direction');
         
-        if (pageReloadInterval > 1000) { // Ensure interval is reasonable
+        if (pageReloadInterval > 1000) {
             setTimeout(function(){
-               window.location.reload(true); // true: force reload from server
+               let reloadUrl = currentUrl.pathname;
+               if (currentDirectionParam) {
+                   reloadUrl += '?direction=' + encodeURIComponent(currentDirectionParam);
+               }
+               window.location.href = reloadUrl;
             }, pageReloadInterval);
             
             const nextFetchInfoEl = document.getElementById('next-fetch-info');
@@ -292,15 +323,19 @@
             }
         } else {
             const nextFetchInfoEl = document.getElementById('next-fetch-info');
-            if(nextFetchInfoEl) { // Fallback message if interval is too short or not parsed
+            if(nextFetchInfoEl) {
                  nextFetchInfoEl.textContent = `バス・天気情報は高頻度更新設定、またはデフォルトの30秒間隔で再取得します。`;
             }
-             // Fallback to a sensible default if config is missing or too low
-            if (pageReloadInterval <= 1000) {
-                setTimeout(function(){ window.location.reload(true); }, 30000);
+            if (pageReloadInterval <= 1000) { // Fallback for too short interval
+                setTimeout(function(){ 
+                    let reloadUrl = currentUrl.pathname;
+                    if (currentDirectionParam) {
+                       reloadUrl += '?direction=' + encodeURIComponent(currentDirectionParam);
+                    }
+                    window.location.href = reloadUrl;
+                }, 30000);
             }
         }
-
     </script>
 </body>
 </html>
