@@ -238,7 +238,7 @@ def index():
     # --- バス情報の取得とキャッシュ (経路ごと) ---
     processed_buses = []
     bus_fetch_error = None
-    app_state_message = "監視中"
+    app_state_message = "作動中"
     
     # 現在の経路用のバス情報キャッシュを取得
     current_bus_cache = bus_data_cache_by_route[direction_id]
