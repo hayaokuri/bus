@@ -256,36 +256,3 @@
 </body>
 </html>
 ```
-
-**主な変更点と説明:**
-
-1.  **`<meta http-equiv="refresh">` の削除:**
-    * ページ全体の自動リフレッシュは、`<body>` の最後にあるJavaScriptの `setTimeout(function(){ window.location.reload(true); }, pageReloadInterval);` で制御するようにしました。
-    * `pageReloadInterval` は、Flaskから渡される `config.get('ACTIVE_DATA_FETCH_INTERVAL', 10)` (デフォルト10秒) をミリ秒に変換した値です。これにより、Python側のデータ取得間隔とHTMLの更新間隔をある程度連動させることができます。
-2.  **現在時刻表示 (`<span id="current-time-display">`)**
-    * 初期値はFlaskから渡された `current_time_str` が表示されますが、すぐにJavaScriptによってリアルタイムの日本時間に置き換えられます。
-3.  **JavaScript (`<script>` タグ内):**
-    * `updateCurrentTime()`:
-        * 1秒ごとに呼び出され、`current-time-display` の内容を現在の日本時間に更新します。
-        * `Intl.DateTimeFormat` を使って `YYYY-MM-DD HH:MM:SS JST` の形式で表示しようと試みます。ブラウザの互換性を考慮し、フォールバックとして `toLocaleString` やUTCベースの計算も入れています。
-    * `setInterval(updateCurrentTime, 1000)`: `updateCurrentTime` を1秒ごとに実行します。
-    * `setTimeout` によるページリロード: `pageReloadInterval`（デフォルト10秒）後にページ全体をリロードし、サーバーから最新のバス情報と天気情報を取得します。
-4.  **CSSの微調整:**
-    * 全体的なデザインを少しモダンに見えるように調整しました（フォント、パディング、シャドウなど）。
-    * `.bus-item.urgent` のスタイルを少し強調しました。
-    * 天気情報の背景色などを調整しました。
-
-**Python側 (`main.py`) での変更の可能性:**
-
-* `index` ルートで `render_template` に渡すコンテキストに、`config` オブジェクト（Flaskの `app.config`）を含めるか、または `ACTIVE_DATA_FETCH_INTERVAL` の値を直接渡すようにすると、JavaScript側でリロード間隔を動的に設定できます。
-    ```python
-    # main.py の index ルート内
-    return render_template('index.html',
-                           # ... (他の変数) ...
-                           config={'ACTIVE_DATA_FETCH_INTERVAL': ACTIVE_DATA_FETCH_INTERVAL} 
-                          )
-    ```
-    そしてHTML側では `{{ config.ACTIVE_DATA_FETCH_INTERVAL }}` のように参照します。
-    （上記のHTML例では、`config.get('DISPLAY_REFRESH_SECONDS', 10)` となっていますが、これはFlaskの `app.config` に `DISPLAY_REFRESH_SECONDS` というキーで設定値がある場合の例です。より直接的には上記のように渡せます。）
-
-この修正版HTMLを使うことで、ページを開いている間、現在時刻は1秒ごとに更新され、バス情報や天気情報は約10秒ごとにサーバーから再取得されてページ全体が更新されるようになり
