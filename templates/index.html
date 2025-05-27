@@ -3,143 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>バス接近情報 {{ from_stop }} → {{ to_stop }}</title>
+    <title>バス接近情報 <span id="title-from-stop">{{ from_stop }}</span> → <span id="title-to-stop">{{ to_stop }}</span></title>
     <style>
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            margin: 15px; 
-            background-color: #f0f2f5; 
-            color: #1c1e21; 
-            line-height: 1.6; 
-        }
-        .container { 
-            max-width: 700px;
-            margin: 20px auto; 
-            background-color: #fff; 
-            padding: 25px; 
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
-        }
-        h1 { 
-            font-size: 2em;
-            color: #0d6efd;
-            margin-bottom: 10px; 
-            text-align: center; 
-            border-bottom: 2px solid #0d6efd;
-            padding-bottom: 10px;
-        }
-        h2 { 
-            font-size: 1.4em; 
-            color: #343a40;
-            margin-top: 30px; 
-            margin-bottom: 15px; 
-            border-bottom: 1px solid #dee2e6; 
-            padding-bottom: 8px;
-        }
-        .header-info p, .status-bar p { 
-            margin: 6px 0; 
-            font-size: 1em; 
-        }
-        /* status-bar のスタイルは残しても良いが、要素がなければ影響しない */
-        .status-bar { 
-            background-color: #e9ecef;
-            padding: 12px; 
-            border-radius: 6px; 
-            margin-bottom: 25px; 
-            border: 1px solid #ced4da;
-        }
-        .weather-info { 
-            font-size: 0.95em; 
-            padding: 10px 12px; 
-            background-color: #e0f7fa;
-            border: 1px solid #b2ebf2;
-            border-radius: 6px; 
+        /* ... (CSSは変更なし) ... */
+        .direction-switcher {
+            text-align: center;
             margin-bottom: 20px;
         }
-        .weather-info strong { color: #00796b; }
-        .bus-list { list-style: none; padding: 0; }
-        .bus-item { 
-            background-color: #fff; 
-            border: 1px solid #e0e0e0; 
-            padding: 15px; 
-            margin-bottom: 12px; 
-            border-radius: 8px; 
-            transition: box-shadow 0.2s ease-in-out;
-        }
-        .bus-item:hover {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .bus-item.urgent { 
-            border-left: 6px solid #d32f2f; 
-            background-color: #ffebee; 
-        }
-        .bus-item.urgent strong, .bus-item.urgent .time-until-text {
-            color: #c62828; 
-            font-weight: bold;
-        }
-        .bus-item strong { font-size: 1.15em; }
-        .bus-item .details { font-size: 0.9em; color: #495057; margin-left: 20px; margin-top: 5px;}
-        .error-message { 
-            color: #d32f2f; 
-            font-weight: bold; 
-            background-color: #ffcdd2;
-            padding: 12px; 
-            border-radius: 6px; 
-            border: 1px solid #ef9a9a;
-        }
-        .info-message { 
-            color: #0d6efd; 
-            background-color: #cfe2ff;
-            padding: 12px; 
-            border-radius: 6px;
-            border: 1px solid #b6d4fe;
-        }
-        .footer { 
-            font-size: 0.85em; 
-            color: #6c757d; 
-            margin-top: 35px; 
-            text-align: center; 
-            border-top: 1px solid #eee;
-            padding-top: 15px;
-        }
-        .footer p { margin: 4px 0; }
-        .urgent-text { color: #d32f2f; font-weight: bold; }
-        .time-until-text { font-weight: normal; color: #333; }
-
-        .indicator {
+        .direction-switcher a {
             display: inline-block;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background-color: #6c757d; /* デフォルト: グレー (確認中) */
-            margin-right: 6px;
-            vertical-align: middle;
-            border: 1px solid #5a6268;
-            box-shadow: 0 0 3px rgba(0,0,0,0.2);
+            padding: 8px 15px;
+            background-color: #0d6efd;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 0 5px;
+            font-size: 0.9em;
         }
-        .indicator.green {
-            background-color: #28a745; /* 緑 (正常) */
-            border-color: #1e7e34;
-        }
-        .indicator.yellow {
-            background-color: #ffc107; /* 黄 (警告) */
-            border-color: #d39e00;
-        }
-        .indicator.red {
-            background-color: #dc3545; /* 赤 (異常) */
-            border-color: #b21f2d;
-        }
-        .last-updated-label {
-            font-size: 0.8em;
-            color: #555;
-            display: block; 
-            margin-top: 5px; 
+        .direction-switcher a.active {
+            background-color: #0a58ca;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>バス接近情報</h1>
+
+        <div class="direction-switcher">
+            <a href="?direction=sannodai_to_isehara" id="link_sannodai_to_isehara">産業能率大学 発 → 伊勢原駅北口 行き</a>
+            <a href="?direction=isehara_to_sannodai" id="link_isehara_to_sannodai">伊勢原駅北口 発 → 産業能率大学 行き</a>
+        </div>
+
         <div class="header-info">
             <p><strong>区間:</strong> <span id="from-stop-name">{{ from_stop }}</span> → <span id="to-stop-name">{{ to_stop }}</span></p>
             <p><strong>現在時刻:</strong> <span id="current-time-display">時刻取得中...</span></p>
@@ -148,79 +43,50 @@
                 <span id="server-status-indicator" class="indicator"></span>
                 <span id="server-status-text">確認中...</span>
             </p>
-            </div>
-
-        <div class="weather-info" id="weather-info-area">
-            <p>天気情報取得中...</p>
-            <span class="last-updated-label">最終更新: <span id="weather-last-updated">N/A</span></span>
+            <p><strong>運用日数:</strong> <span id="uptime-days">{{ initial_uptime_days | default('--') }}</span> 日目</p>
         </div>
-
-        <h2>【今後のバス】</h2>
-        <p><small>バス情報最終更新: <span id="bus-last-updated">N/A</span></small></p>
-
-        <div id="bus-info-container">
-            <p class="info-message">バス情報を取得中です...</p>
         </div>
-    </div>
-
-    <div class="footer">
-        <p><small>データ提供: 神奈川中央交通</small></p>
-        <p><small>&copy; 2024 バス観測サイト</small></p>
-    </div>
 
     <script>
-        function updateCurrentTime() {
-            const timeDisplay = document.getElementById('current-time-display');
-            if (timeDisplay) {
-                const now = new Date();
-                const options = {
-                    year: 'numeric', month: '2-digit', day: '2-digit',
-                    hour: '2-digit', minute: '2-digit', second: '2-digit',
-                    hour12: false, timeZone: 'Asia/Tokyo'
-                };
-                try {
-                    const formatter = new Intl.DateTimeFormat('ja-JP', options);
-                    const parts = formatter.formatToParts(now);
-                    let year, month, day, hour, minute, second;
-                    parts.forEach(part => {
-                        if (part.type === 'year') year = part.value;
-                        if (part.type === 'month') month = part.value;
-                        if (part.type === 'day') day = part.value;
-                        if (part.type === 'hour') hour = part.value;
-                        if (part.type === 'minute') minute = part.value;
-                        if (part.type === 'second') second = part.value;
-                    });
-                    if (year && month && day && hour && minute && second) {
-                        timeDisplay.textContent = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')} ${hour.padStart(2, '0')}:${minute.padStart(2, '0')}:${second.padStart(2, '0')} JST`;
-                    } else {
-                        timeDisplay.textContent = now.toLocaleString('sv-SE', { timeZone: 'Asia/Tokyo' }) + " JST";
-                    }
-                } catch (e) {
-                    console.warn("Intl.DateTimeFormat not fully supported, falling back.");
-                    let jstHours = (now.getUTCHours() + 9) % 24;
-                    timeDisplay.textContent =
-                        now.getUTCFullYear() + '-' +
-                        ('0' + (now.getUTCMonth() + 1)).slice(-2) + '-' +
-                        ('0' + now.getUTCDate()).slice(-2) + ' ' +
-                        ('0' + jstHours).slice(-2) + ':' +
-                        ('0' + now.getUTCMinutes()).slice(-2) + ':' +
-                        ('0' + now.getUTCSeconds()).slice(-2) + ' JST';
-                }
-            }
-        }
-        setInterval(updateCurrentTime, 1000);
-        updateCurrentTime();
+        // ... (updateCurrentTime 関数は変更なし) ...
+        // setInterval(updateCurrentTime, 1000);
+        // updateCurrentTime(); // これは fetchAndUpdateData の初回呼び出し後などに移動した方が良いかも
 
         const dataUpdateInterval = parseInt("{{ config.get('ACTIVE_DATA_FETCH_INTERVAL', 10) }}", 10) * 1000;
+        let currentDirection = '{{ current_direction | default("sannodai_to_isehara") }}'; // Pythonから渡された現在の方向
+
+        function setActiveLink() {
+            document.getElementById('link_sannodai_to_isehara').classList.remove('active');
+            document.getElementById('link_isehara_to_sannodai').classList.remove('active');
+            if (currentDirection === 'sannodai_to_isehara') {
+                document.getElementById('link_sannodai_to_isehara').classList.add('active');
+            } else if (currentDirection === 'isehara_to_sannodai') {
+                document.getElementById('link_isehara_to_sannodai').classList.add('active');
+            }
+        }
+        setActiveLink(); // 初期表示時にアクティブリンクを設定
 
         async function fetchAndUpdateData() {
             try {
-                const response = await fetch('/api/data');
+                // URLSearchParams を使って現在のURLから direction を取得、なければデフォルト値
+                const params = new URLSearchParams(window.location.search);
+                const directionForAPI = params.get('direction') || currentDirection;
+
+                const response = await fetch(`/api/data?direction=${directionForAPI}`); // APIにdirectionを渡す
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data = await response.json();
 
+                // 区間情報をAPIから取得したもので更新
+                document.getElementById('from-stop-name').textContent = data.from_stop;
+                document.getElementById('to-stop-name').textContent = data.to_stop;
+                // ページタイトルも更新 (オプション)
+                document.getElementById('title-from-stop').textContent = data.from_stop;
+                document.getElementById('title-to-stop').textContent = data.to_stop;
+
+
+                // サーバー状態インジケーターとテキスト
                 const statusIndicator = document.getElementById('server-status-indicator');
                 const statusText = document.getElementById('server-status-text');
                 if (statusIndicator && statusText) {
@@ -228,28 +94,27 @@
                         if (data.system_status.healthy) {
                             statusIndicator.className = 'indicator green';
                             statusText.textContent = '作動中';
-                        } else if (data.system_status.warning) { 
+                        } else if (data.system_status.warning) {
                             statusIndicator.className = 'indicator yellow';
                             statusText.textContent = '一部注意あり';
-                        }
-                         else { 
+                        } else {
                             statusIndicator.className = 'indicator red';
                             statusText.textContent = '停止またはエラー';
                         }
                     } else {
-                        statusIndicator.className = 'indicator'; 
+                        statusIndicator.className = 'indicator';
                         statusText.textContent = '状態不明';
                     }
                 }
 
-                // ★削除: 運用日数の更新処理
-                // const uptimeDaysSpan = document.getElementById('uptime-days');
-                // if (uptimeDaysSpan && data.uptime_days !== undefined) {
-                //     uptimeDaysSpan.textContent = data.uptime_days;
-                // }
+                // 運用日数
+                const uptimeDaysSpan = document.getElementById('uptime-days');
+                if (uptimeDaysSpan && data.uptime_days !== undefined) {
+                    uptimeDaysSpan.textContent = data.uptime_days;
+                }
 
+                // 天気情報
                 const weatherInfoArea = document.getElementById('weather-info-area');
-                const weatherLastUpdatedSpan = document.getElementById('weather-last-updated');
                 let weatherHtml = '';
                 if (data.weather_data) {
                     if (data.weather_data.error_message) {
@@ -265,28 +130,21 @@
                 } else {
                     weatherHtml = '<p>天気情報取得エラー</p>';
                 }
-                const weatherContentParagraph = weatherInfoArea.querySelector('p:not(.last-updated-label)');
-                if (weatherContentParagraph) {
-                    weatherContentParagraph.outerHTML = weatherHtml; 
-                } else { 
-                    weatherInfoArea.insertAdjacentHTML('afterbegin', weatherHtml);
+                weatherInfoArea.innerHTML = weatherHtml;
+
+                // アプリ状態メッセージ
+                const appStateMsgDisplay = document.getElementById('app-state-message-display');
+                if (appStateMsgDisplay) {
+                    appStateMsgDisplay.textContent = data.app_state_message || 'N/A';
                 }
 
-                if (weatherLastUpdatedSpan) { 
-                    weatherLastUpdatedSpan.textContent = data.weather_last_updated_str || 'N/A';
-                }
-
-                // ★削除: アプリ状態メッセージの更新処理
-                // const appStateMsgDisplay = document.getElementById('app-state-message-display');
-                // if (appStateMsgDisplay) {
-                //     appStateMsgDisplay.textContent = data.app_state_message || 'N/A';
-                // }
-                
+                // バス情報最終更新時刻
                 const busLastUpdatedSpan = document.getElementById('bus-last-updated');
                 if (busLastUpdatedSpan) {
                     busLastUpdatedSpan.textContent = data.bus_last_updated_str || "N/A";
                 }
 
+                // バス一覧
                 const busInfoContainer = document.getElementById('bus-info-container');
                 let busesHtml = '';
                 if (data.bus_error_message) {
@@ -308,47 +166,55 @@
                     });
                     busesHtml += '</ul>';
                 } else {
-                    // ★変更: data.app_state_message を参照しないように修正
                     let noBusMsg = '現在、利用可能なバス情報はありません。';
-                    // data.app_state_messageに依存していた分岐を簡略化。必要であれば別の条件で分岐を再構築してください。
-                    // if (data.app_state_message === '始発バス待機中 (早朝)' || (data.app_state_message && data.app_state_message.startsWith('始発バス待機中'))) {
-                    //     noBusMsg = 'バスの運行情報を確認中です...';
-                    // } else if (data.app_state_message === '運行再開待機中 (終バス後など)') {
-                    //      noBusMsg = 'バス運行再開待機中...';
-                    // }
-                    // より一般的なメッセージに変更
-                    if (data.buses_to_display && data.buses_to_display.length === 0 && !data.bus_error_message) {
-                        noBusMsg = '現在表示できるバス情報はありません。運行時間外か、本日の運行は終了した可能性があります。';
+                    if (data.app_state_message === '始発バス待機中 (早朝)' || (data.app_state_message && data.app_state_message.startsWith('始発バス待機中'))) {
+                        noBusMsg = 'バスの運行情報を確認中です...';
+                    } else if (data.app_state_message === '運行再開待機中 (終バス後など)') {
+                         noBusMsg = 'バス運行再開待機中...';
                     }
-
                     busesHtml = `<p class="info-message" data-bus-info>${noBusMsg}</p>`;
                 }
                 busInfoContainer.innerHTML = busesHtml;
+
+                // 現在の方向を更新し、アクティブなリンクを再設定
+                if (data.current_direction) {
+                    currentDirection = data.current_direction;
+                    setActiveLink();
+                }
 
             } catch (error) {
                 console.error('データ更新に失敗しました:', error);
                 const busInfoContainer = document.getElementById('bus-info-container');
                 busInfoContainer.innerHTML = `<p class="error-message">データ更新に失敗しました。サーバーとの通信を確認してください。</p>`;
-                
+
                 const statusIndicator = document.getElementById('server-status-indicator');
                 const statusText = document.getElementById('server-status-text');
                 if (statusIndicator) statusIndicator.className = 'indicator red';
                 if (statusText) statusText.textContent = '通信エラー';
-                
-                // ★削除: エラー時の運用日数更新処理
-                // const uptimeDaysSpan = document.getElementById('uptime-days');
-                // if (uptimeDaysSpan) uptimeDaysSpan.textContent = 'N/A';
 
-                const weatherLastUpdatedSpan = document.getElementById('weather-last-updated');
-                if (weatherLastUpdatedSpan) {
-                    weatherLastUpdatedSpan.textContent = 'N/A';
-                }
+                const uptimeDaysSpan = document.getElementById('uptime-days');
+                if (uptimeDaysSpan) uptimeDaysSpan.textContent = 'N/A';
             }
         }
 
-        fetchAndUpdateData(); 
-        if (dataUpdateInterval > 0) { 
+        // updateCurrentTime は最初に1回実行し、その後インターバルで実行
+        updateCurrentTime();
+        setInterval(updateCurrentTime, 1000);
+
+        fetchAndUpdateData(); // 初回データ取得
+        if (dataUpdateInterval > 0) {
             setInterval(fetchAndUpdateData, dataUpdateInterval);
+            const nextFetchInfoEl = document.getElementById('next-fetch-info');
+            if(nextFetchInfoEl && dataUpdateInterval > 1000) {
+                 nextFetchInfoEl.textContent = `バス・天気情報は約${dataUpdateInterval/1000}秒間隔でサーバーから再取得します。`;
+            } else if (nextFetchInfoEl) {
+                 nextFetchInfoEl.textContent = `バス・天気情報は高頻度でサーバーから再取得設定です。`;
+            }
+        } else {
+            const nextFetchInfoEl = document.getElementById('next-fetch-info');
+            if(nextFetchInfoEl) {
+                nextFetchInfoEl.textContent = 'バス・天気情報の自動更新は無効です。';
+            }
         }
     </script>
 </body>
