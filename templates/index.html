@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>バス接近情報 <span id="title-from-stop">{{ from_stop }}</span> → <span id="title-to-stop">{{ to_stop }}</span></title>
+    <title>バス接近情報 {{ from_stop }} → {{ to_stop }}</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -36,11 +36,10 @@
             border-bottom: 1px solid #dee2e6;
             padding-bottom: 8px;
         }
-        .header-info p { /* .status-bar p から統合 */
+        .header-info p {
             margin: 6px 0;
             font-size: 1em;
         }
-        /* status-bar のスタイルは削除 (要素がなくなったため) */
         .weather-info {
             font-size: 0.95em;
             padding: 10px 12px;
@@ -104,25 +103,25 @@
             width: 14px;
             height: 14px;
             border-radius: 50%;
-            background-color: #6c757d; /* デフォルト: グレー (確認中) */
+            background-color: #6c757d;
             margin-right: 6px;
             vertical-align: middle;
             border: 1px solid #5a6268;
             box-shadow: 0 0 3px rgba(0,0,0,0.2);
         }
         .indicator.green {
-            background-color: #28a745; /* 緑 (正常) */
+            background-color: #28a745;
             border-color: #1e7e34;
         }
         .indicator.yellow {
-            background-color: #ffc107; /* 黄 (警告) */
+            background-color: #ffc107;
             border-color: #d39e00;
         }
         .indicator.red {
-            background-color: #dc3545; /* 赤 (異常) */
+            background-color: #dc3545;
             border-color: #b21f2d;
         }
-        .direction-switcher { /* 切り替えボタン用のスタイルを追加 */
+        .direction-switcher {
             text-align: center;
             margin-bottom: 20px;
         }
@@ -140,7 +139,7 @@
             background-color: #0a58ca;
             font-weight: bold;
         }
-        .last-updated-label { /* 天気最終更新時刻用スタイル */
+        .last-updated-label {
             font-size: 0.8em;
             color: #555;
             display: block;
@@ -165,7 +164,7 @@
                 <span id="server-status-indicator" class="indicator"></span>
                 <span id="server-status-text">確認中...</span>
             </p>
-            </div>
+        </div>
 
         <div class="weather-info" id="weather-info-area">
             <p>天気情報取得中...</p>
@@ -247,17 +246,17 @@
             try {
                 const params = new URLSearchParams(window.location.search);
                 const directionForAPI = params.get('direction') || currentDirection;
-                console.log("Fetching data for direction:", directionForAPI); // ★デバッグログ追加
+                console.log("Fetching data for direction:", directionForAPI);
 
                 const response = await fetch(`/api/data?direction=${directionForAPI}`);
-                console.log("Response status:", response.status); // ★デバッグログ追加
+                console.log("Response status:", response.status);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data = await response.json();
-                console.log("Data received from API:", data); // ★デバッグログ追加
+                console.log("Data received from API:", data);
 
-                let element; // ★デバッグ用に変数宣言
+                let element;
 
                 console.log("Attempting to update from-stop-name. Element ID: 'from-stop-name'");
                 element = document.getElementById('from-stop-name');
@@ -269,15 +268,12 @@
                 if (!element) { console.error("'to-stop-name' not found!"); throw new Error("'to-stop-name' not found!");}
                 element.textContent = data.to_stop;
 
-                console.log("Attempting to update title-from-stop. Element ID: 'title-from-stop'");
-                element = document.getElementById('title-from-stop');
-                if (!element) { console.error("'title-from-stop' not found!"); throw new Error("'title-from-stop' not found!");}
-                element.textContent = data.from_stop;
+                // ★ ページタイトル全体の更新に変更
+                console.log("Attempting to update document title.");
+                document.title = `バス接近情報 ${data.from_stop} → ${data.to_stop}`;
+                console.log("Document title updated to:", document.title);
 
-                console.log("Attempting to update title-to-stop. Element ID: 'title-to-stop'");
-                element = document.getElementById('title-to-stop');
-                if (!element) { console.error("'title-to-stop' not found!"); throw new Error("'title-to-stop' not found!");}
-                element.textContent = data.to_stop;
+                // ★ 'title-from-stop' と 'title-to-stop' のIDを持つspanへの更新処理は削除
 
                 console.log("Attempting to update server-status-indicator and server-status-text. Element IDs: 'server-status-indicator', 'server-status-text'");
                 const statusIndicator = document.getElementById('server-status-indicator');
@@ -339,7 +335,6 @@
                 console.log("Attempting to update bus-last-updated. Element ID: 'bus-last-updated'");
                 const busLastUpdatedSpan = document.getElementById('bus-last-updated');
                 if (!busLastUpdatedSpan) { console.error("'bus-last-updated' not found!"); throw new Error("'bus-last-updated' not found!");}
-                // busLastUpdatedSpan が null でないことのチェックは上記で行っているので、以下の if(busLastUpdatedSpan) は省略可能
                 busLastUpdatedSpan.textContent = data.bus_last_updated_str || "N/A";
 
 
@@ -383,7 +378,7 @@
             } catch (error) {
                 console.error('データ更新に失敗しました (catch block):', error);
                 const busInfoContainer = document.getElementById('bus-info-container');
-                if (busInfoContainer) { // nullチェックを追加
+                if (busInfoContainer) {
                     busInfoContainer.innerHTML = `<p class="error-message">データ更新に失敗しました。サーバーとの通信を確認してください。</p>`;
                 }
                 const statusIndicator = document.getElementById('server-status-indicator');
@@ -391,7 +386,7 @@
                 if (statusIndicator) statusIndicator.className = 'indicator red';
                 if (statusText) statusText.textContent = '通信エラー';
                 const weatherLastUpdatedSpan = document.getElementById('weather-last-updated');
-                 if (weatherLastUpdatedSpan) { // nullチェックを追加
+                 if (weatherLastUpdatedSpan) {
                     weatherLastUpdatedSpan.textContent = 'N/A';
                 }
             }
