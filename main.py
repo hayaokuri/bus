@@ -8,11 +8,10 @@ import time
 import os
 import pytz
 import logging
-# import threading # threading は現在使用されていないためコメントアウトまたは削除してよい
 
 # --- 設定 (環境変数から読み込むことを推奨) ---
-OPENWEATHERMAP_API_KEY = os.environ.get("OPENWEATHERMAP_API_KEY", "YOUR_OPENWEATHERMAP_API_KEY_HERE")
-DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "YOUR_DISCORD_WEBHOOK_URL_HERE")
+OPENWEATHERMAP_API_KEY = "28482976c81657127a816a47f53cc3d2"
+DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1375497603466395749/4QtOWTUk-_44xc8-RVmhm3imPatU4yiEuRj1NR1j5PryEkbik98A204uJ3069nye_GNI"
 WEATHER_LOCATION = "Isehara,JP" #
 BASE_URL = "http://real.kanachu.jp/pc/displayapproachinfo" #
 FROM_STOP_NO = "18137" #
