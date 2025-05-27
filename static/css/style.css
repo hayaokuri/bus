@@ -425,3 +425,23 @@ body.dark-mode .system-route {
     display: block;
     margin-top: 3px;
 }
+.origin-indicator { /* 石倉発を示すテキストのスタイル */
+    font-weight: normal;
+    font-size: 0.9em;
+    color: var(--text-color-light); /* 少し控えめな色 */
+    margin-right: 5px;
+    padding: 2px 4px;
+    background-color: var(--bg-color); /* 背景と少し区別 */
+    border: 1px solid var(--card-border-color);
+    border-radius: 3px;
+}
+body.dark-mode .origin-indicator {
+    color: var(--text-color-light);
+    background-color: var(--card-bg-color);
+    border-color: var(--text-color-subtle);
+}
+
+.bus-item.ishikura-origin-bus .departure-time {
+    /* 石倉発の場合、発車時刻のフォント色を変えるなどしても良い */
+    /* color: var(--primary-color); */ /* 例 */
+}
