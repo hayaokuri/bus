@@ -17,14 +17,14 @@ BASE_URL = "http://real.kanachu.jp/pc/displayapproachinfo"
 
 STOPS_DATA = {
     "to_station": {
-        "from_stop_no": "18137", # 産業能率大学
-        "to_stop_no": "18100",   # 伊勢原駅北口
+        "from_stop_no": "18137",
+        "to_stop_no": "18100",
         "from_stop_name": "産業能率大学",
         "to_stop_name": "伊勢原駅北口"
     },
     "to_university": {
         "from_stop_no": "18100", # 伊勢原駅北口 (注: 正しい乗り場番号の確認が必要)
-        "to_stop_no": "18137",   # 産業能率大学
+        "to_stop_no": "18137",
         "from_stop_name": "伊勢原駅北口",
         "to_stop_name": "産業能率大学"
     }
@@ -41,6 +41,8 @@ KEY_DEPARTURE_TIME = "departure_time"
 KEY_STATUS_TEXT = "status_text"
 KEY_TIME_UNTIL = "time_until_departure"
 KEY_IS_URGENT = "is_urgent"
+KEY_DEPARTURE_TIME_ISO = "departure_time_iso"
+KEY_SECONDS_UNTIL_DEPARTURE = "seconds_until_departure"
 
 app = Flask(__name__)
 
@@ -49,7 +51,7 @@ logging.basicConfig(level=logging.INFO,
                     datefmt='%Y-%m-%d %H:%M:%S')
 
 weather_cache = {"data": None, "timestamp": 0, "error": None}
-bus_data_cache = {} # 方向ごとにキャッシュを保持するため、初期化方法を変更
+bus_data_cache = {}
 
 weather_fetched_today_g = False
 last_date_weather_checked_g = None
@@ -58,13 +60,10 @@ WEATHER_CACHE_DURATION_SECONDS = 30 * 60
 BUS_DATA_CACHE_DURATION_SECONDS = 10
 
 def send_discord_notification(message):
-    # DISCORD_WEBHOOK_URL のプレースホルダチェックを簡略化
     if not DISCORD_WEBHOOK_URL or "YOUR_DISCORD_WEBHOOK_URL_HERE" in DISCORD_WEBHOOK_URL:
         logging.warning("Discord Webhook URLが未設定またはプレースホルダーのままのため、通知は送信されません。")
         return
-    # 実際のURLが設定されている場合でもログ出力を続けるか検討 (本番では冗長な場合も)
     logging.info("Discord Webhook URLが設定されています。")
-
     payload = {"content": message, "username": "バス情報チェッカー"}
     headers = {"Content-Type": "application/json"}
     try:
@@ -78,13 +77,10 @@ def send_discord_notification(message):
 
 def get_weather_info(api_key, location_query):
     global weather_fetched_today_g
-    # APIキーのプレースホルダチェックを簡略化
     if not api_key or "YOUR_OPENWEATHERMAP_API_KEY_HERE" in api_key:
         logging.warning("OpenWeatherMap APIキーが未設定またはプレースホルダーのままです。")
         return None, None, None, None, "APIキー未設定"
     logging.info("OpenWeatherMap APIキーが設定されています。")
-
-
     api_url = "http://api.openweathermap.org/data/2.5/weather"
     params = {"q": location_query, "appid": api_key, "units": "metric", "lang": "ja"}
     try:
@@ -125,7 +121,6 @@ def fetch_simplified_bus_departure_times(from_stop_no, to_stop_no):
         if not main_content_area: return {"buses": [], "error": None}
         bus_info_headings = main_content_area.find_all('h3', class_='heading3')
         if not bus_info_headings: return {"buses": [], "error": None}
-
         for heading_tag in bus_info_headings:
             if len(bus_departure_list) >= MAX_BUSES_TO_FETCH: break
             hgroup_element = heading_tag.parent
@@ -134,17 +129,14 @@ def fetch_simplified_bus_departure_times(from_stop_no, to_stop_no):
                 bus_wrap_element = hgroup_element.find_next_sibling('div', class_='wrap')
             if not bus_wrap_element: bus_wrap_element = heading_tag.find_next_sibling('div', class_='wrap')
             if not bus_wrap_element: continue
-
             col02 = bus_wrap_element.find('div', class_='col02')
             if not col02: continue
             frame_box_03 = col02.find('div', class_='frameBox03')
             if not frame_box_03: continue
             approach_info_title_element = frame_box_03.find('p', class_='title01')
             if not approach_info_title_element: continue
-
             title_text_raw = approach_info_title_element.get_text(strip=True)
             departure_time_str = None
-
             if "まもなく発車します" in title_text_raw or "まもなく到着" in title_text_raw:
                 departure_time_str = "まもなく発車します"
             elif "通過しました" in title_text_raw or "出発しました" in title_text_raw:
@@ -153,7 +145,6 @@ def fetch_simplified_bus_departure_times(from_stop_no, to_stop_no):
                 match_time_candidate = re.search(r'(\d{1,2}:\d{2})発?', title_text_raw)
                 time_part = None
                 if match_time_candidate: time_part = match_time_candidate.group(1)
-
                 if "予定通り発車します" in title_text_raw:
                     if time_part: departure_time_str = f"{time_part}発 (予定通り)"
                     else: departure_time_str = "状態不明 (予定通り情報あり)"
@@ -165,7 +156,6 @@ def fetch_simplified_bus_departure_times(from_stop_no, to_stop_no):
                     else: departure_time_str = "状態不明 (予定情報あり)"
                 elif time_part:
                     departure_time_str = f"{time_part}発"
-
             if departure_time_str:
                 bus_departure_list.append({KEY_DEPARTURE_TIME: departure_time_str, KEY_STATUS_TEXT: title_text_raw})
         return {"buses": bus_departure_list, "error": None}
@@ -185,10 +175,13 @@ def fetch_simplified_bus_departure_times(from_stop_no, to_stop_no):
 def calculate_and_format_time_until(departure_str, status_text_raw, current_dt_tokyo):
     is_urgent = False
     time_until_str = ""
+    seconds_until = -1
+    departure_datetime_tokyo = None
 
     if "まもなく発車します" in departure_str:
         time_until_str = "まもなく"
         is_urgent = True
+        seconds_until = 10 # まもなくを10秒とする
     elif "出発しました" in departure_str:
         time_until_str = "出発済み"
     else:
@@ -198,16 +191,18 @@ def calculate_and_format_time_until(departure_str, status_text_raw, current_dt_t
             elif "(遅延可能性あり)" in departure_str: time_until_str = "遅延可能性あり"
             elif "(予定)" in departure_str: time_until_str = "予定"
             else: time_until_str = ""
-            return time_until_str, is_urgent
+            return time_until_str, is_urgent, seconds_until, departure_datetime_tokyo
 
         bus_time_str = match.group(1)
         try:
             bus_hour, bus_minute = map(int, bus_time_str.split(':'))
             bus_dt_today_tokyo = current_dt_tokyo.replace(hour=bus_hour, minute=bus_minute, second=0, microsecond=0)
+            departure_datetime_tokyo = bus_dt_today_tokyo
 
             if bus_dt_today_tokyo < current_dt_tokyo and \
                (current_dt_tokyo.hour >= 20 and bus_hour <= 5):
                 bus_dt_today_tokyo += datetime.timedelta(days=1)
+                departure_datetime_tokyo = bus_dt_today_tokyo
 
             if bus_dt_today_tokyo < current_dt_tokyo:
                 if "予定通り発車します" not in status_text_raw and \
@@ -220,16 +215,16 @@ def calculate_and_format_time_until(departure_str, status_text_raw, current_dt_t
             else:
                 delta = bus_dt_today_tokyo - current_dt_tokyo
                 total_seconds = int(delta.total_seconds())
+                seconds_until = total_seconds
 
                 if total_seconds <= 15 :
                     time_until_str = "まもなく発車"
                     is_urgent = True
                 elif total_seconds <= 180:
                     minutes_until = total_seconds // 60
-                    seconds_until = total_seconds % 60
+                    seconds_rem = total_seconds % 60
+                    time_until_str = f"あと{minutes_until}分{seconds_rem}秒"
                     is_urgent = True
-                    if minutes_until > 0: time_until_str = f"あと{minutes_until}分{seconds_until}秒"
-                    else: time_until_str = f"あと{seconds_until}秒"
                 else:
                     minutes_until = total_seconds // 60
                     time_until_str = f"あと{minutes_until}分"
@@ -241,19 +236,15 @@ def calculate_and_format_time_until(departure_str, status_text_raw, current_dt_t
 
     if "遅延可能性あり" in departure_str and time_until_str and "あと" in time_until_str:
         is_urgent = False
-
     if "まもなく" in time_until_str or "まもなく発車します" in departure_str:
         is_urgent = True
 
-    return time_until_str, is_urgent
+    return time_until_str, is_urgent, seconds_until, departure_datetime_tokyo
 
 @app.route('/')
 def index():
     app.config['ACTIVE_DATA_FETCH_INTERVAL'] = BUS_DATA_CACHE_DURATION_SECONDS
-    # 初期表示のバス停名はJavaScript側でAPIから取得するため、ここではダミーでOK
-    # もしくは固定の初期値を渡す
-    # ここでは、デフォルトの向きの名称を渡しておく
-    default_direction_data = STOPS_DATA.get('to_station')
+    default_direction_data = STOPS_DATA.get('to_station') # 初期表示は大学発とする
     return render_template('index.html',
                            from_stop=default_direction_data["from_stop_name"],
                            to_stop=default_direction_data["to_stop_name"],
@@ -272,9 +263,9 @@ def api_data():
     from_stop_name_current = current_stops_data["from_stop_name"]
     to_stop_name_current = current_stops_data["to_stop_name"]
 
-    if current_direction_key not in bus_data_cache: # 方向別のキャッシュがなければ初期化
+    if current_direction_key not in bus_data_cache:
         bus_data_cache[current_direction_key] = {"data": [], "timestamp": 0, "error": None, "data_valid": True}
-    active_bus_cache = bus_data_cache[current_direction_key] # 現在の方向のキャッシュを使用
+    active_bus_cache = bus_data_cache[current_direction_key]
 
     current_dt_tokyo = datetime.datetime.now(TOKYO_TZ)
     current_time_unix = time.time()
@@ -308,7 +299,6 @@ def api_data():
 
     processed_buses = []
     bus_fetch_error = None
-
     is_before_service_hours = current_hour < BUS_SERVICE_START_HOUR or \
                               (current_hour == BUS_SERVICE_START_HOUR and current_dt_tokyo.minute < BUS_SERVICE_START_MINUTE)
 
@@ -316,13 +306,15 @@ def api_data():
         if active_bus_cache.get("data"):
             for bus_info_original in active_bus_cache["data"]:
                 bus_info = bus_info_original.copy()
-                time_until_str, is_urgent = calculate_and_format_time_until(
+                time_until_str, is_urgent, seconds_until, departure_dt = calculate_and_format_time_until(
                     bus_info.get(KEY_DEPARTURE_TIME, ""),
                     bus_info.get(KEY_STATUS_TEXT, ""),
                     current_dt_tokyo
                 )
                 bus_info[KEY_TIME_UNTIL] = time_until_str
                 bus_info[KEY_IS_URGENT] = is_urgent
+                bus_info[KEY_SECONDS_UNTIL_DEPARTURE] = seconds_until
+                bus_info[KEY_DEPARTURE_TIME_ISO] = departure_dt.isoformat() if departure_dt else None
                 processed_buses.append(bus_info)
         bus_fetch_error = active_bus_cache.get("error")
     elif current_time_unix - active_bus_cache.get("timestamp", 0) > BUS_DATA_CACHE_DURATION_SECONDS \
@@ -338,13 +330,15 @@ def api_data():
     if active_bus_cache.get("data"):
         for bus_info_original in active_bus_cache["data"]:
             bus_info = bus_info_original.copy()
-            time_until_str, is_urgent = calculate_and_format_time_until(
+            time_until_str, is_urgent, seconds_until, departure_dt = calculate_and_format_time_until(
                 bus_info.get(KEY_DEPARTURE_TIME, ""),
                 bus_info.get(KEY_STATUS_TEXT, ""),
                 current_dt_tokyo
             )
             bus_info[KEY_TIME_UNTIL] = time_until_str
             bus_info[KEY_IS_URGENT] = is_urgent
+            bus_info[KEY_SECONDS_UNTIL_DEPARTURE] = seconds_until
+            bus_info[KEY_DEPARTURE_TIME_ISO] = departure_dt.isoformat() if departure_dt else None
             processed_buses.append(bus_info)
 
     system_healthy = True
@@ -376,12 +370,12 @@ def api_data():
 if __name__ == '__main__':
     if OPENWEATHERMAP_API_KEY == "YOUR_OPENWEATHERMAP_API_KEY_HERE":
         logging.warning("ローカルテスト: OpenWeatherMap APIキーが設定されていません。コード内の 'YOUR_OPENWEATHERMAP_API_KEY_HERE' を実際のキーに置き換えてください。")
-    elif OPENWEATHERMAP_API_KEY == "28482976c81657127a816a47f53cc3d2":
-        logging.info("ローカルテスト: OpenWeatherMap APIキー '28482976c81657127a816a47f53cc3d2' が設定されています。")
+    elif OPENWEATHERMAP_API_KEY == "28482976c81657127a816a47f53cc3d2": # これはサンプルなので、実際のキーとは異なるはずです
+        logging.info("ローカルテスト: OpenWeatherMap APIキーが設定されています。")
 
     if DISCORD_WEBHOOK_URL == "YOUR_DISCORD_WEBHOOK_URL_HERE":
         logging.warning("ローカルテスト: Discord Webhook URLが設定されていません。コード内の 'YOUR_DISCORD_WEBHOOK_URL_HERE' を実際のURLに置き換えてください。")
-    elif DISCORD_WEBHOOK_URL == "https://discord.com/api/webhooks/1375497603466395749/4QtOWTUk-_44xc8-RVmhm3imPatU4yiEuRj1NR1j5PryEkbik98A204uJ3069nye_GNI":
+    elif "discord.com/api/webhooks" in DISCORD_WEBHOOK_URL : # URLの一部が含まれていれば設定されているとみなす（より具体的なチェックも可能）
         logging.info("ローカルテスト: Discord Webhook URLが設定されています。")
 
     logging.info("アプリケーションを開始します。")
