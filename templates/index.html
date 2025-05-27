@@ -40,6 +40,7 @@
             margin: 6px 0; 
             font-size: 1em; 
         }
+        /* status-bar のスタイルは残しても良いが、要素がなければ影響しない */
         .status-bar { 
             background-color: #e9ecef;
             padding: 12px; 
@@ -131,8 +132,8 @@
         .last-updated-label {
             font-size: 0.8em;
             color: #555;
-            display: block; /* 天気情報の最終更新時刻を改行して表示する場合 */
-            margin-top: 5px; /* 天気情報の最終更新時刻の上のマージン */
+            display: block; 
+            margin-top: 5px; 
         }
     </style>
 </head>
@@ -147,16 +148,11 @@
                 <span id="server-status-indicator" class="indicator"></span>
                 <span id="server-status-text">確認中...</span>
             </p>
-            <p><strong>運用日数:</strong> <span id="uptime-days">{{ initial_uptime_days | default('--') }}</span> 日目</p>
-        </div>
+            </div>
 
         <div class="weather-info" id="weather-info-area">
             <p>天気情報取得中...</p>
             <span class="last-updated-label">最終更新: <span id="weather-last-updated">N/A</span></span>
-        </div>
-
-        <div class="status-bar" id="app-status-area">
-            <p><strong>現在のアプリの状態:</strong> <span id="app-state-message-display">確認中...</span></p>
         </div>
 
         <h2>【今後のバス】</h2>
@@ -168,7 +164,9 @@
     </div>
 
     <div class="footer">
-        <p><small>データ提供: 神奈川中央交通</small></p> <p><small>&copy; 2024 バス観測サイト</small></p> </div>
+        <p><small>データ提供: 神奈川中央交通</small></p>
+        <p><small>&copy; 2024 バス観測サイト</small></p>
+    </div>
 
     <script>
         function updateCurrentTime() {
@@ -244,20 +242,19 @@
                     }
                 }
 
-                const uptimeDaysSpan = document.getElementById('uptime-days');
-                if (uptimeDaysSpan && data.uptime_days !== undefined) {
-                    uptimeDaysSpan.textContent = data.uptime_days;
-                }
+                // ★削除: 運用日数の更新処理
+                // const uptimeDaysSpan = document.getElementById('uptime-days');
+                // if (uptimeDaysSpan && data.uptime_days !== undefined) {
+                //     uptimeDaysSpan.textContent = data.uptime_days;
+                // }
 
-                // 天気情報と最終更新時刻
                 const weatherInfoArea = document.getElementById('weather-info-area');
-                const weatherLastUpdatedSpan = document.getElementById('weather-last-updated'); // ★追加
+                const weatherLastUpdatedSpan = document.getElementById('weather-last-updated');
                 let weatherHtml = '';
                 if (data.weather_data) {
                     if (data.weather_data.error_message) {
                         weatherHtml = `<p class="error-message">天気情報: ${data.weather_data.error_message}</p>`;
                     } else if (data.weather_data.condition) {
-                        // ★変更点: 既存の <p> の内容を保持しつつ、天気情報部分を生成
                         weatherHtml = `<p><strong>伊勢原の天気:</strong> ${data.weather_data.description || data.weather_data.condition}
                                        ${data.weather_data.temp_c !== null ? ` (${data.weather_data.temp_c.toFixed(1)}℃)` : ''}
                                        ${data.weather_data.is_rain ? ' <span class="urgent-text">傘を忘れずに！</span>' : ''}
@@ -268,23 +265,22 @@
                 } else {
                     weatherHtml = '<p>天気情報取得エラー</p>';
                 }
-                // ★変更点: 天気情報部分のみを更新し、最終更新時刻のspanは別途更新
                 const weatherContentParagraph = weatherInfoArea.querySelector('p:not(.last-updated-label)');
                 if (weatherContentParagraph) {
-                    weatherContentParagraph.outerHTML = weatherHtml; // pタグごと置き換える
-                } else { // 初回などpタグがない場合
+                    weatherContentParagraph.outerHTML = weatherHtml; 
+                } else { 
                     weatherInfoArea.insertAdjacentHTML('afterbegin', weatherHtml);
                 }
 
-                if (weatherLastUpdatedSpan) { // ★追加
+                if (weatherLastUpdatedSpan) { 
                     weatherLastUpdatedSpan.textContent = data.weather_last_updated_str || 'N/A';
                 }
 
-
-                const appStateMsgDisplay = document.getElementById('app-state-message-display');
-                if (appStateMsgDisplay) {
-                    appStateMsgDisplay.textContent = data.app_state_message || 'N/A';
-                }
+                // ★削除: アプリ状態メッセージの更新処理
+                // const appStateMsgDisplay = document.getElementById('app-state-message-display');
+                // if (appStateMsgDisplay) {
+                //     appStateMsgDisplay.textContent = data.app_state_message || 'N/A';
+                // }
                 
                 const busLastUpdatedSpan = document.getElementById('bus-last-updated');
                 if (busLastUpdatedSpan) {
@@ -312,12 +308,19 @@
                     });
                     busesHtml += '</ul>';
                 } else {
+                    // ★変更: data.app_state_message を参照しないように修正
                     let noBusMsg = '現在、利用可能なバス情報はありません。';
-                    if (data.app_state_message === '始発バス待機中 (早朝)' || (data.app_state_message && data.app_state_message.startsWith('始発バス待機中'))) {
-                        noBusMsg = 'バスの運行情報を確認中です...';
-                    } else if (data.app_state_message === '運行再開待機中 (終バス後など)') {
-                         noBusMsg = 'バス運行再開待機中...';
+                    // data.app_state_messageに依存していた分岐を簡略化。必要であれば別の条件で分岐を再構築してください。
+                    // if (data.app_state_message === '始発バス待機中 (早朝)' || (data.app_state_message && data.app_state_message.startsWith('始発バス待機中'))) {
+                    //     noBusMsg = 'バスの運行情報を確認中です...';
+                    // } else if (data.app_state_message === '運行再開待機中 (終バス後など)') {
+                    //      noBusMsg = 'バス運行再開待機中...';
+                    // }
+                    // より一般的なメッセージに変更
+                    if (data.buses_to_display && data.buses_to_display.length === 0 && !data.bus_error_message) {
+                        noBusMsg = '現在表示できるバス情報はありません。運行時間外か、本日の運行は終了した可能性があります。';
                     }
+
                     busesHtml = `<p class="info-message" data-bus-info>${noBusMsg}</p>`;
                 }
                 busInfoContainer.innerHTML = busesHtml;
@@ -332,10 +335,10 @@
                 if (statusIndicator) statusIndicator.className = 'indicator red';
                 if (statusText) statusText.textContent = '通信エラー';
                 
-                const uptimeDaysSpan = document.getElementById('uptime-days');
-                if (uptimeDaysSpan) uptimeDaysSpan.textContent = 'N/A';
+                // ★削除: エラー時の運用日数更新処理
+                // const uptimeDaysSpan = document.getElementById('uptime-days');
+                // if (uptimeDaysSpan) uptimeDaysSpan.textContent = 'N/A';
 
-                // ★エラー時も天気最終更新は表示試行(APIからのデータがない場合はN/Aになる)
                 const weatherLastUpdatedSpan = document.getElementById('weather-last-updated');
                 if (weatherLastUpdatedSpan) {
                     weatherLastUpdatedSpan.textContent = 'N/A';
@@ -346,19 +349,6 @@
         fetchAndUpdateData(); 
         if (dataUpdateInterval > 0) { 
             setInterval(fetchAndUpdateData, dataUpdateInterval);
-            // ★変更点: 以下のnext-fetch-info関連の処理を削除 (要素自体を削除したため)
-            // const nextFetchInfoEl = document.getElementById('next-fetch-info');
-            // if(nextFetchInfoEl && dataUpdateInterval > 1000) { 
-            //      nextFetchInfoEl.textContent = `バス・天気情報は約${dataUpdateInterval/1000}秒間隔でサーバーから再取得します。`;
-            // } else if (nextFetchInfoEl) {
-            //      nextFetchInfoEl.textContent = `バス・天気情報は高頻度でサーバーから再取得設定です。`;
-            // }
-        } else {
-            // ★変更点: 以下のnext-fetch-info関連の処理を削除
-            // const nextFetchInfoEl = document.getElementById('next-fetch-info');
-            // if(nextFetchInfoEl) {
-            //     nextFetchInfoEl.textContent = 'バス・天気情報の自動更新は無効です。';
-            // }
         }
     </script>
 </body>
