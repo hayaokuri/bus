@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>バス接近情報 {{ from_stop }} → {{ to_stop }}</title>
+    <title>バス接近情報</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         :root {
@@ -123,15 +123,42 @@
             font-size: 2.2em;
             color: var(--primary-color);
             margin-top: 0;
-            margin-bottom: 20px;
+            margin-bottom: 15px; /* 調整 */
             text-align: center;
             border-bottom: 2px solid var(--primary-color);
             padding-bottom: 10px;
         }
+        .direction-switch-container {
+            text-align: center;
+            margin-bottom: 20px; /* 調整 */
+        }
+        #direction-switch-button {
+            background-color: var(--primary-color);
+            color: var(--button-text-color);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s ease-in-out;
+        }
+        #direction-switch-button:hover {
+            background-color: var(--primary-color-darker);
+        }
+        #direction-switch-button .fas {
+            margin-right: 8px;
+        }
+        body.dark-mode #direction-switch-button {
+             background-color: var(--primary-color);
+             color: var(--button-text-color);
+        }
+        body.dark-mode #direction-switch-button:hover {
+            background-color: var(--primary-color-darker);
+        }
         h2 {
             font-size: 1.5em;
             color: var(--text-color);
-            margin-top: 35px;
+            margin-top: 30px; /* 調整 */
             margin-bottom: 15px;
             border-bottom: 1px solid var(--card-border-color);
             padding-bottom: 10px;
@@ -149,7 +176,7 @@
         }
         .header-info {
             background-color: var(--header-bg-color);
-            padding: 20px;
+            padding: 15px 20px; /* 調整 */
             border-radius: 8px;
             margin-bottom: 25px;
             border: 1px solid var(--card-border-color);
@@ -330,8 +357,16 @@
             <button id="theme-toggle-button"><i class="fas fa-adjust"></i> テーマ切替</button>
         </div>
         <h1><i class="fas fa-bus-alt"></i> バス接近情報</h1>
+
+        <div class="direction-switch-container">
+            <button id="direction-switch-button">
+                <i class="fas fa-exchange-alt"></i>
+                <span id="current-direction-from"></span> → <span id="current-direction-to"></span>
+                (切替)
+            </button>
+        </div>
+
         <div class="header-info">
-            <p><strong><i class="fas fa-map-signs"></i> 区間:</strong> <span id="from-stop-name">{{ from_stop }}</span> → <span id="to-stop-name">{{ to_stop }}</span></p>
             <p><strong><i class="fas fa-clock"></i> 現在時刻:</strong> <span id="current-time-display">時刻取得中...</span></p>
             <p>
                 <strong><i class="fas fa-server"></i> サーバー状態:</strong>
@@ -416,6 +451,27 @@
             localStorage.setItem('theme', theme);
         });
 
+        let currentDirection = localStorage.getItem('busDirection') || 'to_station';
+
+        const directionSwitchButton = document.getElementById('direction-switch-button');
+        const currentDirectionFromSpan = document.getElementById('current-direction-from');
+        const currentDirectionToSpan = document.getElementById('current-direction-to');
+
+        function updateDirectionDisplay(from, to) {
+            if (currentDirectionFromSpan) currentDirectionFromSpan.textContent = from;
+            if (currentDirectionToSpan) currentDirectionToSpan.textContent = to;
+            // タイトルも更新
+            document.title = `バス接近情報 ${from} → ${to}`;
+        }
+
+        if (directionSwitchButton) {
+            directionSwitchButton.addEventListener('click', () => {
+                currentDirection = (currentDirection === 'to_station') ? 'to_university' : 'to_station';
+                localStorage.setItem('busDirection', currentDirection);
+                fetchAndUpdateData();
+            });
+        }
+
         function getWeatherIconClass(conditionCode) {
             if (!conditionCode) return 'fa-question-circle';
             const code = parseInt(conditionCode, 10);
@@ -434,11 +490,15 @@
 
         async function fetchAndUpdateData() {
             try {
-                const response = await fetch('/api/data');
+                const response = await fetch(`/api/data?direction=${currentDirection}`);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data = await response.json();
+
+                if (data.from_stop && data.to_stop) {
+                    updateDirectionDisplay(data.from_stop, data.to_stop);
+                }
 
                 const statusIndicator = document.getElementById('server-status-indicator');
                 const statusText = document.getElementById('server-status-text');
