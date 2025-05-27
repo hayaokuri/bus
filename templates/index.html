@@ -227,7 +227,7 @@
         }
 
         const dataUpdateInterval = parseInt("{{ config.get('ACTIVE_DATA_FETCH_INTERVAL', 10) }}", 10) * 1000;
-        let currentDirection = '{{ current_direction | default("sannodai_to_isehara") }}'; // Pythonから渡された現在の方向
+        let currentDirection = '{{ current_direction | default("sannodai_to_isehara") }}';
 
         function setActiveLink() {
             const linkSannodai = document.getElementById('link_sannodai_to_isehara');
@@ -241,30 +241,50 @@
                 linkIsehara.classList.add('active');
             }
         }
-        setActiveLink(); // 初期表示時にアクティブリンクを設定
+        setActiveLink();
 
         async function fetchAndUpdateData() {
             try {
                 const params = new URLSearchParams(window.location.search);
-                // URLにdirectionパラメータがあればそれを優先、なければJavaScript内のcurrentDirectionを使用
                 const directionForAPI = params.get('direction') || currentDirection;
+                console.log("Fetching data for direction:", directionForAPI); // ★デバッグログ追加
 
-                const response = await fetch(`/api/data?direction=${directionForAPI}`); // APIにdirectionを渡す
+                const response = await fetch(`/api/data?direction=${directionForAPI}`);
+                console.log("Response status:", response.status); // ★デバッグログ追加
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data = await response.json();
+                console.log("Data received from API:", data); // ★デバッグログ追加
 
-                // 区間情報をAPIから取得したもので更新
-                document.getElementById('from-stop-name').textContent = data.from_stop;
-                document.getElementById('to-stop-name').textContent = data.to_stop;
-                // ページタイトルも更新
-                document.getElementById('title-from-stop').textContent = data.from_stop;
-                document.getElementById('title-to-stop').textContent = data.to_stop;
+                let element; // ★デバッグ用に変数宣言
 
+                console.log("Attempting to update from-stop-name. Element ID: 'from-stop-name'");
+                element = document.getElementById('from-stop-name');
+                if (!element) { console.error("'from-stop-name' not found!"); throw new Error("'from-stop-name' not found!");}
+                element.textContent = data.from_stop;
 
+                console.log("Attempting to update to-stop-name. Element ID: 'to-stop-name'");
+                element = document.getElementById('to-stop-name');
+                if (!element) { console.error("'to-stop-name' not found!"); throw new Error("'to-stop-name' not found!");}
+                element.textContent = data.to_stop;
+
+                console.log("Attempting to update title-from-stop. Element ID: 'title-from-stop'");
+                element = document.getElementById('title-from-stop');
+                if (!element) { console.error("'title-from-stop' not found!"); throw new Error("'title-from-stop' not found!");}
+                element.textContent = data.from_stop;
+
+                console.log("Attempting to update title-to-stop. Element ID: 'title-to-stop'");
+                element = document.getElementById('title-to-stop');
+                if (!element) { console.error("'title-to-stop' not found!"); throw new Error("'title-to-stop' not found!");}
+                element.textContent = data.to_stop;
+
+                console.log("Attempting to update server-status-indicator and server-status-text. Element IDs: 'server-status-indicator', 'server-status-text'");
                 const statusIndicator = document.getElementById('server-status-indicator');
                 const statusText = document.getElementById('server-status-text');
+                if (!statusIndicator) console.error("'server-status-indicator' not found!");
+                if (!statusText) console.error("'server-status-text' not found!");
+
                 if (statusIndicator && statusText) {
                     if (data.system_status) {
                         if (data.system_status.healthy) {
@@ -283,10 +303,14 @@
                     }
                 }
 
-                // 運用日数の更新処理は削除
-
+                console.log("Attempting to get weather-info-area. Element ID: 'weather-info-area'");
                 const weatherInfoArea = document.getElementById('weather-info-area');
-                const weatherLastUpdatedSpan = document.getElementById('weather-last-updated'); // 天気最終更新用span
+                if (!weatherInfoArea) { console.error("'weather-info-area' not found!"); throw new Error("'weather-info-area' not found!");}
+
+                console.log("Attempting to update weather-last-updated. Element ID: 'weather-last-updated'");
+                const weatherLastUpdatedSpan = document.getElementById('weather-last-updated');
+                if (!weatherLastUpdatedSpan) { console.error("'weather-last-updated' not found!"); throw new Error("'weather-last-updated' not found!");}
+
                 let weatherHtml = '';
                 if (data.weather_data) {
                     if (data.weather_data.error_message) {
@@ -302,27 +326,27 @@
                 } else {
                     weatherHtml = '<p>天気情報取得エラー</p>';
                 }
-                // 天気情報エリアの既存のpタグを置き換えるか、なければ先頭に追加
                 const weatherContentParagraph = weatherInfoArea.querySelector('p:not(.last-updated-label)');
                 if (weatherContentParagraph) {
                     weatherContentParagraph.outerHTML = weatherHtml;
                 } else {
                     weatherInfoArea.insertAdjacentHTML('afterbegin', weatherHtml);
                 }
-                // 天気最終更新時刻を更新
                 if (weatherLastUpdatedSpan && data.weather_last_updated_str) {
                     weatherLastUpdatedSpan.textContent = data.weather_last_updated_str;
                 }
 
-
-                // アプリ状態メッセージの更新処理は削除
-
+                console.log("Attempting to update bus-last-updated. Element ID: 'bus-last-updated'");
                 const busLastUpdatedSpan = document.getElementById('bus-last-updated');
-                if (busLastUpdatedSpan) {
-                    busLastUpdatedSpan.textContent = data.bus_last_updated_str || "N/A";
-                }
+                if (!busLastUpdatedSpan) { console.error("'bus-last-updated' not found!"); throw new Error("'bus-last-updated' not found!");}
+                // busLastUpdatedSpan が null でないことのチェックは上記で行っているので、以下の if(busLastUpdatedSpan) は省略可能
+                busLastUpdatedSpan.textContent = data.bus_last_updated_str || "N/A";
 
+
+                console.log("Attempting to get bus-info-container. Element ID: 'bus-info-container'");
                 const busInfoContainer = document.getElementById('bus-info-container');
+                if (!busInfoContainer) { console.error("'bus-info-container' not found!"); throw new Error("'bus-info-container' not found!");}
+
                 let busesHtml = '';
                 if (data.bus_error_message) {
                     busesHtml = `<p class="error-message" data-bus-error>バス情報取得エラー: ${data.bus_error_message}</p>`;
@@ -343,51 +367,42 @@
                     });
                     busesHtml += '</ul>';
                 } else {
-                    // data.app_state_message を参照しない形に変更
                     let noBusMsg = '現在、利用可能なバス情報はありません。';
                      if (data.buses_to_display && data.buses_to_display.length === 0 && !data.bus_error_message) {
-                        // 以前のロジックで app_state_message に依存していた部分を、より汎用的なメッセージに置き換え
-                        // 必要であれば、main.pyから別の判定用フラグを受け取り、それに応じてメッセージを出し分けることも可能です。
                         noBusMsg = '現在表示できるバス情報はありません。運行時間外か、本日の運行は終了した可能性があります。';
                     }
                     busesHtml = `<p class="info-message" data-bus-info>${noBusMsg}</p>`;
                 }
                 busInfoContainer.innerHTML = busesHtml;
 
-                // 現在の方向を更新し、アクティブなリンクを再設定
                 if (data.current_direction) {
                     currentDirection = data.current_direction;
                     setActiveLink();
                 }
 
             } catch (error) {
-                console.error('データ更新に失敗しました:', error);
+                console.error('データ更新に失敗しました (catch block):', error);
                 const busInfoContainer = document.getElementById('bus-info-container');
-                if (busInfoContainer) {
+                if (busInfoContainer) { // nullチェックを追加
                     busInfoContainer.innerHTML = `<p class="error-message">データ更新に失敗しました。サーバーとの通信を確認してください。</p>`;
                 }
                 const statusIndicator = document.getElementById('server-status-indicator');
                 const statusText = document.getElementById('server-status-text');
                 if (statusIndicator) statusIndicator.className = 'indicator red';
                 if (statusText) statusText.textContent = '通信エラー';
-
-                // エラー時の運用日数更新処理は削除
-                const weatherLastUpdatedSpan = document.getElementById('weather-last-updated'); // 天気最終更新用span
-                 if (weatherLastUpdatedSpan) {
-                    weatherLastUpdatedSpan.textContent = 'N/A'; // エラー時はN/Aに
+                const weatherLastUpdatedSpan = document.getElementById('weather-last-updated');
+                 if (weatherLastUpdatedSpan) { // nullチェックを追加
+                    weatherLastUpdatedSpan.textContent = 'N/A';
                 }
             }
         }
 
-        updateCurrentTime(); // 初回時刻表示
-        setInterval(updateCurrentTime, 1000); // 時刻表示の定期更新
-
-        fetchAndUpdateData(); // 初回データ取得
+        updateCurrentTime();
+        setInterval(updateCurrentTime, 1000);
+        fetchAndUpdateData();
         if (dataUpdateInterval > 0) {
             setInterval(fetchAndUpdateData, dataUpdateInterval);
-            // フッターの自動更新間隔表示は削除されているため、関連するJavaScriptも削除
         }
-        // 自動更新が無効の場合のメッセージ表示も削除
     </script>
 </body>
 </html>
