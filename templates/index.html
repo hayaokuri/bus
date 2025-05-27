@@ -41,7 +41,6 @@
             --button-text-color: #fff;
             --button-hover-bg: #0056b3;
             --footer-border-color: #eee;
-
             --font-family-base: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
@@ -56,7 +55,7 @@
             --primary-color-darker: #1a7fdb;
             --urgent-color: #ff7b7b;
             --urgent-color-text: #f44336;
-            --urgent-bg-color: #3e2723; /* より暗い赤系の背景 */
+            --urgent-bg-color: #3e2723;
             --header-bg-color: #1e1e1e;
             --container-bg-color: #1a1a1a;
             --indicator-default-bg: #b0b0b0;
@@ -93,19 +92,17 @@
             max-width: 750px;
             margin: 30px auto;
             background-color: var(--container-bg-color);
-            padding: 20px 30px 30px 30px; /* 上のパディングを少し減らす */
+            padding: 20px 30px 30px 30px;
             border-radius: 12px;
             box-shadow: 0 8px 25px rgba(0,0,0,0.1);
         }
         body.dark-mode .container {
             box-shadow: 0 8px 25px rgba(0,0,0,0.3);
         }
-
         .theme-toggle-container {
             text-align: right;
             margin-bottom: 10px;
         }
-
         #theme-toggle-button {
             background-color: var(--button-bg);
             color: var(--button-text-color);
@@ -122,48 +119,39 @@
         #theme-toggle-button .fas {
             margin-right: 5px;
         }
-
         h1 {
             font-size: 2.2em;
             color: var(--primary-color);
-            margin-top: 0; /* ボタンとの間隔調整 */
+            margin-top: 0;
             margin-bottom: 20px;
             text-align: center;
-            border-bottom: 2px solid var(--primary-color); /* テーマカラーに合わせる */
+            border-bottom: 2px solid var(--primary-color);
             padding-bottom: 10px;
         }
         h2 {
-            font-size: 1.5em; /* 少し大きく */
+            font-size: 1.5em;
             color: var(--text-color);
             margin-top: 35px;
             margin-bottom: 15px;
             border-bottom: 1px solid var(--card-border-color);
             padding-bottom: 10px;
         }
-        .header-info p, .status-bar p {
-            margin: 8px 0; /* 少し余白を増やす */
+        .header-info p {
+            margin: 8px 0;
             font-size: 1.05em;
         }
-        .header-info p .fas, .status-bar p .fas { /* アイコンとテキストの間隔 */
+        .header-info p .fas {
             margin-right: 8px;
             color: var(--primary-color-darker);
         }
-        body.dark-mode .header-info p .fas, body.dark-mode .status-bar p .fas {
+        body.dark-mode .header-info p .fas {
             color: var(--primary-color);
         }
-
         .header-info {
             background-color: var(--header-bg-color);
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 25px;
-            border: 1px solid var(--card-border-color);
-        }
-        .status-bar {
-            background-color: var(--header-bg-color);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 30px;
             border: 1px solid var(--card-border-color);
         }
         .weather-info {
@@ -178,8 +166,6 @@
         .weather-info strong { color: var(--weather-info-text-strong); }
         .weather-info .fas { margin-right: 8px; color: var(--weather-info-text-strong); }
         .weather-info .urgent-text .fas { color: var(--urgent-color); }
-
-
         .bus-list { list-style: none; padding: 0; }
         .bus-item {
             background-color: var(--card-bg-color);
@@ -202,14 +188,12 @@
         body.dark-mode .bus-item:hover {
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
-
         .bus-item-main {
             display: flex;
             align-items: center;
             margin-bottom: 8px;
-            flex-wrap: wrap; /* 画面幅が狭い場合に折り返す */
+            flex-wrap: wrap;
         }
-
         .bus-number {
             font-size: 1.1em;
             font-weight: bold;
@@ -217,21 +201,18 @@
             margin-right: 10px;
             min-width: 25px;
         }
-        .bus-number .fas { /* 緊急アイコン用 */
+        .bus-number .fas {
            color: var(--urgent-color-text);
         }
         body.dark-mode .bus-number .fas {
             color: var(--urgent-color);
         }
-
-
         .departure-time {
-            font-size: 1.5em; /* 時刻をより大きく */
+            font-size: 1.5em;
             font-weight: bold;
             color: var(--text-color);
             margin-right: 12px;
         }
-
         .status-badge {
             padding: 4px 10px;
             border-radius: 15px;
@@ -242,20 +223,15 @@
             white-space: nowrap;
             line-height: 1.5;
         }
-        /* ダークモード時の特定バッジの文字色調整 */
         body.dark-mode .status-badge.status-type-delayed-possible {
-            color: #111; /* 黄色背景に黒文字 */
+            color: #111;
         }
-
-
         .status-type-on-time { background-color: var(--indicator-green-bg); }
         .status-type-delayed-possible { background-color: var(--indicator-yellow-bg); color: #333; }
         .status-type-scheduled { background-color: #17a2b8; }
         body.dark-mode .status-type-scheduled { background-color: #26c6da; }
         .status-type-soon { background-color: var(--urgent-color); }
         .status-type-departed { background-color: var(--indicator-default-bg); }
-
-
         .bus-item-sub {
             font-size: 0.95em;
             color: var(--text-color-light);
@@ -267,41 +243,35 @@
         .bus-item-sub span:not(:last-child) {
             margin-right: 15px;
         }
-
         .time-until-text {
             font-weight: bold;
             color: var(--primary-color);
         }
         .time-until-text .fas { margin-right: 5px; }
-
         .details.status-on-time-detail {
             color: var(--indicator-green-bg);
         }
         .details.status-on-time-detail .fas { margin-right: 5px; }
-
-
         .bus-item.urgent {
             border-left: 6px solid var(--urgent-color);
             background-color: var(--urgent-bg-color);
         }
         .bus-item.urgent .departure-time,
-        .bus-item.urgent .bus-number { /* bus-number 全体ではなく、中のテキストのみ */
+        .bus-item.urgent .bus-number {
             color: var(--urgent-color-text);
         }
         .bus-item.urgent .status-badge.status-type-soon {
-             background-color: var(--urgent-color); /* 強調のため再度指定 */
-             color: #fff; /* 緊急時は白文字固定 */
+             background-color: var(--urgent-color);
+             color: #fff;
         }
         body.dark-mode .bus-item.urgent .departure-time,
         body.dark-mode .bus-item.urgent .bus-number {
              color: var(--urgent-color);
         }
          body.dark-mode .bus-item.urgent .status-badge.status-type-soon {
-            color: #fff; /* ダークモードでも白文字 */
+            color: #fff;
             background-color: var(--urgent-color);
         }
-
-
         .error-message {
             color: var(--error-message-text);
             font-weight: bold;
@@ -320,7 +290,6 @@
         .error-message .fas, .info-message .fas, .error-message .far, .info-message .far {
             margin-right: 8px;
         }
-
         .footer {
             font-size: 0.85em;
             color: var(--text-color-subtle);
@@ -331,8 +300,6 @@
         }
         .footer p { margin: 4px 0; }
         .urgent-text { color: var(--urgent-color); font-weight: bold; }
-        /* グローバルな .time-until-text は削除または調整。バスリスト内の .time-until-text で詳細指定 */
-
         .indicator {
             display: inline-block;
             width: 14px;
@@ -375,10 +342,6 @@
 
         <div class="weather-info" id="weather-info-area">
             <p><i class="fas fa-spinner fa-spin"></i> 天気情報取得中...</p>
-        </div>
-
-        <div class="status-bar" id="app-status-area">
-            <p><strong><i class="fas fa-info-circle"></i> 現在のアプリの状態:</strong> <span id="app-state-message-display">確認中...</span></p>
         </div>
 
         <h2>【今後のバス】</h2>
@@ -457,7 +420,7 @@
             if (!conditionCode) return 'fa-question-circle';
             const code = parseInt(conditionCode, 10);
             if (code >= 200 && code < 300) return 'fa-bolt';
-            if (code >= 300 && code < 400) return 'fa-cloud-rain'; // Drizzle (fa-cloud-drizzle might not be in older FA)
+            if (code >= 300 && code < 400) return 'fa-cloud-rain';
             if (code >= 500 && code < 600) return 'fa-cloud-showers-heavy';
             if (code >= 600 && code < 700) return 'fa-snowflake';
             if (code >= 700 && code < 800) return 'fa-smog';
@@ -497,11 +460,6 @@
                     }
                 }
 
-                const uptimeDaysSpan = document.getElementById('uptime-days');
-                if (uptimeDaysSpan && data.uptime_days !== undefined) {
-                    uptimeDaysSpan.textContent = data.uptime_days;
-                }
-
                 const weatherInfoArea = document.getElementById('weather-info-area');
                 let weatherHtml = '';
                 if (data.weather_data) {
@@ -526,11 +484,6 @@
                 }
                 weatherInfoArea.innerHTML = weatherHtml;
 
-                const appStateMsgDisplay = document.getElementById('app-state-message-display');
-                if (appStateMsgDisplay) {
-                    appStateMsgDisplay.textContent = data.app_state_message || 'N/A';
-                }
-
                 const busLastUpdatedSpan = document.getElementById('bus-last-updated');
                 if (busLastUpdatedSpan) {
                     busLastUpdatedSpan.textContent = data.bus_last_updated_str || "N/A";
@@ -546,7 +499,7 @@
                         let departureTimeMain = bus.departure_time.replace(/\(予定通り\)|\(予定\)|\(遅延可能性あり\)|まもなく発車します|出発しました|通過しました/gi, '').trim();
                         let statusLabel = '';
                         let statusType = '';
-                        let isTrulyUrgent = false; // 「まもなく」または「あと数分」を示すフラグ
+                        let isTrulyUrgent = false;
 
                         if (bus.departure_time.includes("まもなく発車します") || (bus.time_until_departure && bus.time_until_departure.toLowerCase().includes("まもなく"))) {
                             statusLabel = 'まもなく発車'; statusType = 'soon'; isTrulyUrgent = true;
@@ -560,16 +513,14 @@
                             statusLabel = '予定'; statusType = 'scheduled';
                         }
 
-                        // is_urgent フラグと time_until_departure を考慮して最終的な緊急度を判断
-                        if (bus.is_urgent && !isTrulyUrgent && statusType !== 'departed') { // is_urgent だが「まもなく」ではない場合
+                        if (bus.is_urgent && !isTrulyUrgent && statusType !== 'departed') {
                            if (bus.time_until_departure && (bus.time_until_departure.includes("あと") && (bus.time_until_departure.includes("秒") || bus.time_until_departure.includes("1分") || bus.time_until_departure.includes("2分") || bus.time_until_departure.includes("3分")))) {
                                 isTrulyUrgent = true;
-                                if (!statusLabel.includes("まもなく")) { // 他のステータスが優先されていない場合
+                                if (!statusLabel.includes("まもなく")) {
                                      statusLabel = 'まもなく発車'; statusType = 'soon';
                                 }
                            }
                         }
-
 
                         busesHtml += `
                             <li class="bus-item ${isTrulyUrgent || (bus.is_urgent && statusType !== 'departed') ? 'urgent' : ''} status-${statusType}">
@@ -587,11 +538,6 @@
                     busesHtml += '</ul>';
                 } else {
                     let noBusMsg = '現在、利用可能なバス情報はありません。';
-                    if (data.app_state_message === '始発バス待機中 (早朝)' || (data.app_state_message && data.app_state_message.startsWith('始発バス待機中'))) {
-                        noBusMsg = 'バスの運行情報を確認中です...';
-                    } else if (data.app_state_message === '運行再開待機中 (終バス後など)') {
-                         noBusMsg = 'バス運行再開待機中...';
-                    }
                     busesHtml = `<p class="info-message" data-bus-info><i class="far fa-clock"></i> ${noBusMsg}</p>`;
                 }
                 busInfoContainer.innerHTML = busesHtml;
@@ -606,9 +552,6 @@
                 const statusText = document.getElementById('server-status-text');
                 if (statusIndicator) statusIndicator.className = 'indicator red';
                 if (statusText) statusText.textContent = '通信エラー';
-
-                const uptimeDaysSpan = document.getElementById('uptime-days');
-                if (uptimeDaysSpan) uptimeDaysSpan.textContent = 'N/A';
 
                 const weatherInfoArea = document.getElementById('weather-info-area');
                 if(weatherInfoArea) weatherInfoArea.innerHTML = '<p class="error-message"><i class="fas fa-exclamation-triangle"></i> 天気情報更新エラー</p>';
