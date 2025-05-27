@@ -274,6 +274,7 @@
             font-weight: bold;
             color: var(--primary-color);
             margin-left: 10px;
+            min-height: 1em; /* 空白時に高さが潰れないように */
         }
         .bus-item.urgent .realtime-countdown {
             color: var(--urgent-color-text);
@@ -281,9 +282,9 @@
         body.dark-mode .bus-item.urgent .realtime-countdown {
             color: var(--urgent-color);
         }
-        .time-until-text { /* このクラスはバスリスト内の詳細情報用 */
-            font-weight: normal; /* 通常の太さ */
-            color: var(--text-color-light); /* 通常のサブテキスト色 */
+        .time-until-text {
+            font-weight: normal;
+            color: var(--text-color-light);
         }
         .time-until-text .fas { margin-right: 5px; }
 
@@ -401,7 +402,8 @@
 
     <div class="footer">
         <p>データ提供：神奈川中央交通</p>
-        <p id="next-fetch-info-debug" style="font-size: 0.75em; color: #aaa;"></p> </div>
+        <p id="next-fetch-info-debug" style="font-size: 0.75em; color: #aaa;"></p>
+    </div>
 
     <script>
         function updateCurrentTime() {
@@ -500,23 +502,22 @@
         let activeBusesData = [];
         let countdownIntervalId = null;
 
-        // 秒数を "あとMM分SS秒" または "まもなく" 等の形式に変換する関数
         function formatSecondsToCountdown(seconds) {
             if (seconds < 0) return "出発済み";
-            if (seconds <= 15) return "まもなく発車"; // 15秒以内は「まもなく」
+            if (seconds <= 15) { // 15秒以内は隣のバッジの「まもなく発車」に任せる
+                return "";
+            }
 
             const minutes = Math.floor(seconds / 60);
             const remainingSeconds = seconds % 60;
 
-            if (seconds <= 180) { // 3分 (180秒) 以内の場合
+            if (seconds <= 180) { // 3分 (180秒) 以内 (かつ15秒より大きい)
                 if (minutes > 0) {
                     return `あと${minutes}分${remainingSeconds}秒`;
                 } else {
                     return `あと${remainingSeconds}秒`;
                 }
             } else { // 3分より大きい場合
-                // 分単位で切り上げて表示する（例：3分1秒でも「あと4分」）
-                // もし切り捨てが良い場合は Math.floor(seconds / 60) を使う
                 const minutesRoundedUp = Math.ceil(seconds / 60);
                 return `あと${minutesRoundedUp}分`;
             }
@@ -538,23 +539,21 @@
                         bus.display_seconds = newSecondsUntil;
                         countdownElement.textContent = formatSecondsToCountdown(newSecondsUntil);
 
-                        const busItemElement = document.getElementById(`bus-item-${index}`); // IDで直接取得
+                        const busItemElement = document.getElementById(`bus-item-${index}`);
                         if (busItemElement) {
-                            if (newSecondsUntil <= 180 && newSecondsUntil > 0) {
+                            // urgentクラスの制御は、サーバーからのis_urgentも加味する
+                            const shouldBeUrgent = (newSecondsUntil > 0 && newSecondsUntil <= 180) || bus.is_urgent_from_server;
+                            if (shouldBeUrgent) {
                                 busItemElement.classList.add('urgent');
                             } else {
-                                // isTrulyUrgent の初期判定に依存するため、ここでは urgent を外すロジックは慎重に
-                                // サーバーからの is_urgent も考慮してクラスを制御するのが望ましい
-                                // 今回はシンプルに、3分過ぎたら urgent を外す（ただしサーバー側の is_urgent が true なら残る可能性あり）
-                                if(newSecondsUntil > 180 && !bus.is_urgent_from_server) { // bus.is_urgent_from_server はAPI側で元々のis_urgentを渡す
-                                    busItemElement.classList.remove('urgent');
-                                }
+                                busItemElement.classList.remove('urgent');
                             }
-                            if (newSecondsUntil === 0 && !bus.departure_time.toLowerCase().includes("まもなく")) {
+
+                            if (newSecondsUntil === 0 && formatSecondsToCountdown(newSecondsUntil) !== "") { // 空でない場合のみ「発車時刻です」
                                 countdownElement.textContent = "発車時刻です";
                             }
                         }
-                    } else if (bus.time_until_departure) {
+                    } else if (bus.time_until_departure) { // サーバーから秒数情報がない場合(初期文字列など)
                         countdownElement.textContent = bus.time_until_departure;
                     }
                 }
@@ -637,38 +636,46 @@
                             display_seconds: bus.seconds_until_departure,
                             time_until_departure: bus.time_until_departure,
                             departure_time: bus.departure_time,
-                            is_urgent_from_server: bus.is_urgent // サーバーからのis_urgentを保持
+                            is_urgent_from_server: bus.is_urgent // サーバーからの is_urgent を保持
                         });
 
                         let departureTimeMain = bus.departure_time.replace(/\(予定通り\)|\(予定\)|\(遅延可能性あり\)|まもなく発車します|出発しました|通過しました/gi, '').trim();
                         let statusLabel = '';
                         let statusType = '';
-                        let isTrulyUrgent = false;
+                        let isTrulyUrgent = false; // これはサーバーの is_urgent や秒数から再評価される
 
-                        if (bus.departure_time.includes("まもなく発車します") || (bus.time_until_departure && bus.time_until_departure.toLowerCase().includes("まもなく"))) {
-                            statusLabel = 'まもなく発車'; statusType = 'soon'; isTrulyUrgent = true;
+                        // サーバーからの is_urgent をまず尊重する
+                        isTrulyUrgent = bus.is_urgent;
+
+                        // ステータスラベルとタイプの決定 (isTrulyUrgent の結果も考慮)
+                        if (isTrulyUrgent && (bus.seconds_until_departure <= 15 || bus.departure_time.toLowerCase().includes("まもなく"))) {
+                            statusLabel = 'まもなく発車'; statusType = 'soon';
                         } else if (bus.departure_time.includes("出発しました") || bus.departure_time.includes("通過しました") || (bus.time_until_departure && bus.time_until_departure === "出発済み")) {
-                            statusLabel = '出発済み'; statusType = 'departed';
+                            statusLabel = '出発済み'; statusType = 'departed'; isTrulyUrgent = false; // 出発済みなら緊急ではない
                         } else if (bus.departure_time.includes("(予定通り)")) {
                             statusLabel = '予定通り'; statusType = 'on-time';
                         } else if (bus.departure_time.includes("(遅延可能性あり)")) {
-                            statusLabel = '遅延可能性あり'; statusType = 'delayed-possible';
+                            statusLabel = '遅延可能性あり'; statusType = 'delayed-possible'; isTrulyUrgent = false; // 遅延なら緊急度は下がる
                         } else if (bus.departure_time.includes("(予定)")) {
                             statusLabel = '予定'; statusType = 'scheduled';
                         }
-
-                        if (bus.is_urgent && !isTrulyUrgent && statusType !== 'departed') {
-                           if (bus.seconds_until_departure > 0 && bus.seconds_until_departure <= 180) {
-                                isTrulyUrgent = true;
-                                if (!statusLabel.includes("まもなく")) {
-                                     statusLabel = 'まもなく発車'; statusType = 'soon';
+                        // サーバーからのis_urgentがtrueで、かつ上記で「まもなく」に分類されなかった場合、再度isTrulyUrgentを確認
+                        if(bus.is_urgent && !statusLabel.includes("まもなく") && statusType !== 'departed'){
+                             if (bus.seconds_until_departure > 0 && bus.seconds_until_departure <= 180) {
+                                isTrulyUrgent = true; // is_urgentフラグと秒数条件で緊急扱い
+                                if (!statusLabel){ // 他のラベルがなければ「まもなく」を補完することも検討できるが、重複を避ける
+                                     statusLabel = '接近中'; statusType = 'soon'; // 例:「まもなく」とは別の緊急ラベル
                                 }
-                           }
+                             } else {
+                               isTrulyUrgent = false; // 3分以上先ならサーバーがis_urgentでも表示上は通常
+                             }
                         }
+
+
                         busesHtml += `
                             <li class="bus-item ${isTrulyUrgent ? 'urgent' : ''} status-${statusType}" id="bus-item-${index}">
                                 <div class="bus-item-main">
-                                    <span class="bus-number">${isTrulyUrgent ? '<i class="fas fa-exclamation-triangle"></i> ' : ''}${index + 1}.</span>
+                                    <span class="bus-number">${isTrulyUrgent && statusType === 'soon' ? '<i class="fas fa-exclamation-triangle"></i> ' : ''}${index + 1}.</span>
                                     <span class="departure-time">${departureTimeMain}</span>
                                     ${statusLabel ? `<span class="status-badge status-type-${statusType}">${statusLabel}</span>` : ''}
                                     <span class="realtime-countdown" id="bus-countdown-${index}">
@@ -716,8 +723,8 @@
         fetchAndUpdateData();
         if (dataUpdateInterval > 0) {
             setInterval(fetchAndUpdateData, dataUpdateInterval);
-            const nextFetchInfoEl = document.getElementById('next-fetch-info-debug'); // ID変更
-            if(nextFetchInfoEl) { // デバッグ表示が必要な場合のみ有効にする
+            const nextFetchInfoEl = document.getElementById('next-fetch-info-debug');
+            if(nextFetchInfoEl) {
                 if (dataUpdateInterval > 1000) {
                      nextFetchInfoEl.textContent = `サーバーデータは約${dataUpdateInterval/1000}秒間隔で再取得します。`;
                 } else {
@@ -725,7 +732,7 @@
                 }
             }
         } else {
-            const nextFetchInfoEl = document.getElementById('next-fetch-info-debug'); // ID変更
+            const nextFetchInfoEl = document.getElementById('next-fetch-info-debug');
             if(nextFetchInfoEl) {
                 nextFetchInfoEl.textContent = 'サーバーデータの自動更新は無効です。';
             }
