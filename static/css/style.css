@@ -1,0 +1,427 @@
+/* static/css/style.css */
+:root {
+    --bg-color: #f0f2f5;
+    --text-color: #1c1e21;
+    --text-color-light: #495057;
+    --text-color-subtle: #6c757d;
+    --card-bg-color: #fff;
+    --card-border-color: #e0e0e0;
+    --primary-color: #0d6efd;
+    --primary-color-darker: #0056b3;
+    --urgent-color: #d32f2f;
+    --urgent-color-text: #c62828;
+    --urgent-bg-color: #ffebee;
+    --header-bg-color: #fff;
+    --container-bg-color: #fff;
+    --indicator-default-bg: #6c757d;
+    --indicator-default-border: #5a6268;
+    --indicator-green-bg: #28a745;
+    --indicator-green-border: #1e7e34;
+    --indicator-yellow-bg: #ffc107;
+    --indicator-yellow-border: #d39e00;
+    --indicator-red-bg: #dc3545;
+    --indicator-red-border: #b21f2d;
+    --weather-info-bg: #e0f7fa;
+    --weather-info-border: #b2ebf2;
+    --weather-info-text-strong: #00796b;
+    --info-message-bg: #cfe2ff;
+    --info-message-border: #b6d4fe;
+    --info-message-text: #0d6efd;
+    --error-message-bg: #ffcdd2;
+    --error-message-border: #ef9a9a;
+    --error-message-text: #d32f2f;
+    --button-bg: #007bff;
+    --button-text-color: #fff;
+    --button-hover-bg: #0056b3;
+    --footer-border-color: #eee;
+    --font-family-base: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body.dark-mode {
+    --bg-color: #121212;
+    --text-color: #e0e0e0;
+    --text-color-light: #b0b0b0;
+    --text-color-subtle: #888;
+    --card-bg-color: #1e1e1e;
+    --card-border-color: #333;
+    --primary-color: #4dabf7;
+    --primary-color-darker: #1a7fdb;
+    --urgent-color: #ff7b7b;
+    --urgent-color-text: #f44336;
+    --urgent-bg-color: #3e2723;
+    --header-bg-color: #1e1e1e;
+    --container-bg-color: #1a1a1a;
+    --indicator-default-bg: #b0b0b0;
+    --indicator-default-border: #888;
+    --indicator-green-bg: #38d969;
+    --indicator-green-border: #29ab51;
+    --indicator-yellow-bg: #ffd54f;
+    --indicator-yellow-border: #ffc107;
+    --indicator-red-bg: #ef5350;
+    --indicator-red-border: #e53935;
+    --weather-info-bg: #1c2a38;
+    --weather-info-border: #2c3e50;
+    --weather-info-text-strong: #4fc3f7;
+    --info-message-bg: #1a3a5c;
+    --info-message-border: #2a5288;
+    --info-message-text: #82b1ff;
+    --error-message-bg: #4a1c1c;
+    --error-message-border: #803030;
+    --error-message-text: #ff8a80;
+    --button-bg: #4dabf7;
+    --button-text-color: #121212;
+    --button-hover-bg: #1a7fdb;
+    --footer-border-color: #333;
+}
+
+body {
+    font-family: var(--font-family-base);
+    margin: 0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.7;
+}
+.container {
+    max-width: 750px;
+    margin: 30px auto;
+    background-color: var(--container-bg-color);
+    padding: 20px 30px 30px 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+body.dark-mode .container {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+}
+.theme-toggle-container {
+    text-align: right;
+    margin-bottom: 10px;
+}
+#theme-toggle-button {
+    background-color: var(--button-bg);
+    color: var(--button-text-color);
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s ease-in-out;
+}
+#theme-toggle-button:hover {
+    background-color: var(--button-hover-bg);
+}
+#theme-toggle-button .fas {
+    margin-right: 5px;
+}
+h1 {
+    font-size: 2.2em;
+    color: var(--primary-color);
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-align: center;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 10px;
+}
+.direction-switch-container {
+    text-align: center;
+    margin-bottom: 20px;
+}
+#direction-switch-button {
+    background-color: var(--primary-color);
+    color: var(--button-text-color);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s ease-in-out;
+}
+#direction-switch-button:hover {
+    background-color: var(--primary-color-darker);
+}
+#direction-switch-button .fas {
+    margin-right: 8px;
+}
+body.dark-mode #direction-switch-button {
+     background-color: var(--primary-color);
+     color: var(--button-text-color);
+}
+body.dark-mode #direction-switch-button:hover {
+    background-color: var(--primary-color-darker);
+}
+h2 { /* 「今後のバス」などのセクションタイトル */
+    font-size: 1.5em;
+    color: var(--text-color);
+    margin-top: 30px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--card-border-color);
+    padding-bottom: 10px;
+}
+.header-info p {
+    margin: 8px 0;
+    font-size: 1.05em;
+}
+.header-info p .fas {
+    margin-right: 8px;
+    color: var(--primary-color-darker);
+}
+body.dark-mode .header-info p .fas {
+    color: var(--primary-color);
+}
+.header-info {
+    background-color: var(--header-bg-color);
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    border: 1px solid var(--card-border-color);
+}
+.weather-info {
+    font-size: 1em;
+    padding: 15px;
+    background-color: var(--weather-info-bg);
+    border: 1px solid var(--weather-info-border);
+    border-radius: 8px;
+    margin-bottom: 25px;
+}
+.weather-info p { margin: 5px 0; }
+.weather-info strong { color: var(--weather-info-text-strong); }
+.weather-info .fas { margin-right: 8px; color: var(--weather-info-text-strong); }
+.weather-info .urgent-text .fas { color: var(--urgent-color); }
+
+/* バスリスト関連 */
+.bus-list { list-style: none; padding: 0; }
+.bus-item {
+    background-color: var(--card-bg-color);
+    border: 1px solid var(--card-border-color);
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+body.dark-mode .bus-item {
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.bus-item:hover {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transform: translateY(-3px);
+}
+body.dark-mode .bus-item:hover {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+.bus-item-main {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+.bus-number {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-right: 10px;
+    min-width: 25px; /* 番号表示幅をある程度確保 */
+}
+.bus-number .fas { /* 緊急アイコン用 */
+   color: var(--urgent-color-text);
+}
+body.dark-mode .bus-number .fas {
+    color: var(--urgent-color);
+}
+.departure-time {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: var(--text-color);
+    margin-right: 12px;
+}
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 0.8em;
+    font-weight: 600;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    line-height: 1.5;
+}
+body.dark-mode .status-badge.status-type-delayed-possible { /* 黄色背景に黒文字 */
+    color: #111;
+}
+.status-type-on-time { background-color: var(--indicator-green-bg); }
+.status-type-delayed-possible { background-color: var(--indicator-yellow-bg); color: #333; } /* ライトモード時は暗い文字 */
+.status-type-scheduled { background-color: #17a2b8; }
+body.dark-mode .status-type-scheduled { background-color: #26c6da; }
+.status-type-soon { background-color: var(--urgent-color); }
+.status-type-departed { background-color: var(--indicator-default-bg); }
+
+.bus-item-sub {
+    font-size: 0.95em;
+    color: var(--text-color-light);
+    margin-left: 35px; /* bus-number の幅とマージンを考慮 */
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.bus-item-sub span:not(:last-child) {
+    margin-right: 15px;
+}
+.realtime-countdown {
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-left: 10px;
+    min-height: 1em; /* 空白時に高さが潰れないようにするため */
+}
+.bus-item.urgent .realtime-countdown {
+    color: var(--urgent-color-text);
+}
+body.dark-mode .bus-item.urgent .realtime-countdown {
+    color: var(--urgent-color);
+}
+.time-until-text { /* これはバスリスト内の詳細情報用 (現在未使用だが残しておく) */
+    font-weight: normal;
+    color: var(--text-color-light);
+}
+.time-until-text .fas { margin-right: 5px; }
+
+.details.status-on-time-detail {
+    color: var(--indicator-green-bg);
+}
+.details.status-on-time-detail .fas { margin-right: 5px; }
+
+.bus-item.urgent {
+    border-left: 6px solid var(--urgent-color);
+    background-color: var(--urgent-bg-color);
+}
+.bus-item.urgent .departure-time,
+.bus-item.urgent .bus-number { /* bus-number内のテキスト色 */
+    color: var(--urgent-color-text);
+}
+.bus-item.urgent .status-badge.status-type-soon { /* 緊急時の「まもなく」バッジ */
+     background-color: var(--urgent-color); /* is_urgentクラスの背景色と合わせるか、より目立つように */
+     color: #fff; /* 緊急時は白文字固定が良いでしょう */
+}
+body.dark-mode .bus-item.urgent .departure-time,
+body.dark-mode .bus-item.urgent .bus-number {
+     color: var(--urgent-color); /* ダークモードでの緊急テキスト色 */
+}
+ body.dark-mode .bus-item.urgent .status-badge.status-type-soon {
+    color: #fff; /* ダークモードでも白文字 */
+    background-color: var(--urgent-color);
+}
+
+/* メッセージ表示用 */
+.error-message {
+    color: var(--error-message-text);
+    font-weight: bold;
+    background-color: var(--error-message-bg);
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid var(--error-message-border);
+}
+.info-message {
+    color: var(--info-message-text);
+    background-color: var(--info-message-bg);
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid var(--info-message-border);
+}
+.error-message .fas, .info-message .fas, .error-message .far, .info-message .far { /* アイコンとテキストの間隔 */
+    margin-right: 8px;
+}
+
+/* フッター */
+.footer {
+    font-size: 0.85em;
+    color: var(--text-color-subtle);
+    margin-top: 35px;
+    text-align: center;
+    border-top: 1px solid var(--footer-border-color);
+    padding-top: 15px;
+}
+.footer p { margin: 4px 0; }
+.urgent-text { /* 天気情報内の「傘を忘れずに！」など */
+    color: var(--urgent-color);
+    font-weight: bold;
+}
+
+/* サーバー状態インジケーター */
+.indicator {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: var(--indicator-default-bg);
+    margin-right: 6px;
+    vertical-align: middle;
+    border: 1px solid var(--indicator-default-border);
+    box-shadow: 0 0 3px rgba(0,0,0,0.2);
+}
+.indicator.green {
+    background-color: var(--indicator-green-bg);
+    border-color: var(--indicator-green-border);
+}
+.indicator.yellow {
+    background-color: var(--indicator-yellow-bg);
+    border-color: var(--indicator-yellow-border);
+}
+.indicator.red {
+    background-color: var(--indicator-red-bg);
+    border-color: var(--indicator-red-border);
+}
+
+/* 複数ルート表示用 */
+.route-section {
+    margin-bottom: 30px;
+    padding: 15px;
+    background-color: var(--card-bg-color); /* カード背景と同じか少し変える */
+    border: 1px solid var(--card-border-color);
+    border-radius: 8px;
+}
+body.dark-mode .route-section {
+    border-color: var(--card-border-color);
+}
+.route-header {
+    font-size: 1.3em;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: var(--primary-color);
+    border-bottom: 1px solid var(--primary-color);
+    padding-bottom: 8px;
+}
+.bus-item.ishikura-stop-bus { /* 石倉止まりのバスのスタイル */
+    background-color: var(--info-message-bg); /* 例: 少し違う背景色 */
+    border-left: 6px solid var(--info-message-text);
+}
+body.dark-mode .bus-item.ishikura-stop-bus {
+    background-color: var(--info-message-bg);
+    border-left-color: var(--info-message-text);
+}
+.destination-note { /* 「(石倉止まり)」などの注記 */
+    font-size: 0.9em;
+    color: var(--urgent-color);
+    margin-left: 8px;
+    font-style: italic;
+}
+body.dark-mode .destination-note {
+    color: var(--urgent-color);
+}
+.system-route { /* 系統名表示 */
+    font-size: 0.9em;
+    color: var(--text-color-subtle);
+    margin-left: 8px;
+    background-color: var(--bg-color);
+    padding: 2px 5px;
+    border-radius: 4px;
+    border: 1px solid var(--card-border-color);
+}
+body.dark-mode .system-route {
+    background-color: var(--card-bg-color); /* ダークモードではカード背景と同じに */
+    border-color: var(--text-color-subtle);
+}
+.via-info { /* 経由情報 */
+    font-size: 0.85em;
+    color: var(--text-color-light);
+    display: block;
+    margin-top: 3px;
+}
