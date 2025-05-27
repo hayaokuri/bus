@@ -31,9 +31,11 @@ def get_secret(secret_name, project_id):
         return None
 
 # 環境変数から直接読み込む代わりにSecret Managerから取得する
-OPENWEATHERMAP_API_KEY = get_secret("openweathermap-api-key", PROJECT_ID) or "YOUR_OPENWEATHERMAP_API_KEY_HERE_FALLBACK" # シークレット名に合わせて変更
-DISCORD_WEBHOOK_URL = get_secret("discord-webhook-url", PROJECT_ID) or "YOUR_DISCORD_WEBHOOK_URL_HERE_FALLBACK" # シークレット名に合わせて変更
+OPENWEATHERMAP_API_KEY = os.environ.get("OPENWEATHERMAP_API_KEY", "28482976c81657127a816a47f53cc3d2") # ここを変更
+DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "https://discord.com/api/webhooks/1375497603466395749/4QtOWTUk-_44xc8-RVmhm3imPatU4yiEuRj1NR1j5PryEkbik98A204uJ3069nye_GNI") # ここを変更
 
+WEATHER_LOCATION = "Isehara,JP"
+BASE_URL = "http://real.kanachu.jp/pc/displayapproachinfo"
 WEATHER_LOCATION = "Isehara,JP"
 BASE_URL = "http://real.kanachu.jp/pc/displayapproachinfo"
 FROM_STOP_NO = "18137"
