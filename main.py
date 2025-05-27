@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 import requests
 from bs4 import BeautifulSoup
 import json
@@ -9,16 +9,27 @@ import os
 import pytz
 import logging
 
-# --- 設定 ---
 OPENWEATHERMAP_API_KEY = "28482976c81657127a816a47f53cc3d2"
 DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1375497603466395749/4QtOWTUk-_44xc8-RVmhm3imPatU4yiEuRj1NR1j5PryEkbik98A204uJ3069nye_GNI"
 
 WEATHER_LOCATION = "Isehara,JP"
 BASE_URL = "http://real.kanachu.jp/pc/displayapproachinfo"
-FROM_STOP_NO = "18137"
-TO_STOP_NO = "18100"
-FROM_STOP_NAME = "産業能率大学"
-TO_STOP_NAME = "伊勢原駅北口"
+
+STOPS_DATA = {
+    "to_station": {
+        "from_stop_no": "18137", # 産業能率大学
+        "to_stop_no": "18100",   # 伊勢原駅北口
+        "from_stop_name": "産業能率大学",
+        "to_stop_name": "伊勢原駅北口"
+    },
+    "to_university": {
+        "from_stop_no": "18100", # 伊勢原駅北口 (注: 正しい乗り場番号の確認が必要)
+        "to_stop_no": "18137",   # 産業能率大学
+        "from_stop_name": "伊勢原駅北口",
+        "to_stop_name": "産業能率大学"
+    }
+}
+
 MAX_BUSES_TO_FETCH = 10
 WEATHER_FETCH_HOUR = 9
 BUS_SERVICE_START_HOUR = 6
@@ -38,7 +49,8 @@ logging.basicConfig(level=logging.INFO,
                     datefmt='%Y-%m-%d %H:%M:%S')
 
 weather_cache = {"data": None, "timestamp": 0, "error": None}
-bus_data_cache = {"data": [], "timestamp": 0, "error": None, "data_valid": True}
+bus_data_cache = {} # 方向ごとにキャッシュを保持するため、初期化方法を変更
+
 weather_fetched_today_g = False
 last_date_weather_checked_g = None
 
@@ -46,15 +58,12 @@ WEATHER_CACHE_DURATION_SECONDS = 30 * 60
 BUS_DATA_CACHE_DURATION_SECONDS = 10
 
 def send_discord_notification(message):
-    if not DISCORD_WEBHOOK_URL or DISCORD_WEBHOOK_URL == "YOUR_DISCORD_WEBHOOK_URL_HERE" or DISCORD_WEBHOOK_URL == "https://discord.com/api/webhooks/1375497603466395749/4QtOWTUk-_44xc8-RVmhm3imPatU4yiEuRj1NR1j5PryEkbik98A204uJ3069nye_GNI":
-        if DISCORD_WEBHOOK_URL == "YOUR_DISCORD_WEBHOOK_URL_HERE":
-             logging.warning("Discord Webhook URLがプレースホルダーのままのため、通知は送信されません。")
-             return
-        elif DISCORD_WEBHOOK_URL == "https://discord.com/api/webhooks/1375497603466395749/4QtOWTUk-_44xc8-RVmhm3imPatU4yiEuRj1NR1j5PryEkbik98A204uJ3069nye_GNI":
-            logging.info("Discord Webhook URLが設定されています。")
-        else: # 基本的にはここには到達しないはずだが念のため
-            logging.warning("Discord Webhook URLが未設定のため、通知は送信されません。")
-            return
+    # DISCORD_WEBHOOK_URL のプレースホルダチェックを簡略化
+    if not DISCORD_WEBHOOK_URL or "YOUR_DISCORD_WEBHOOK_URL_HERE" in DISCORD_WEBHOOK_URL:
+        logging.warning("Discord Webhook URLが未設定またはプレースホルダーのままのため、通知は送信されません。")
+        return
+    # 実際のURLが設定されている場合でもログ出力を続けるか検討 (本番では冗長な場合も)
+    logging.info("Discord Webhook URLが設定されています。")
 
     payload = {"content": message, "username": "バス情報チェッカー"}
     headers = {"Content-Type": "application/json"}
@@ -69,12 +78,12 @@ def send_discord_notification(message):
 
 def get_weather_info(api_key, location_query):
     global weather_fetched_today_g
-    if not api_key or api_key == "YOUR_OPENWEATHERMAP_API_KEY_HERE" or api_key == "28482976c81657127a816a47f53cc3d2":
-        if api_key == "YOUR_OPENWEATHERMAP_API_KEY_HERE":
-            logging.warning("OpenWeatherMap APIキーがプレースホルダーのままです。")
-            return None, None, None, None, "APIキー未設定"
-        elif api_key == "28482976c81657127a816a47f53cc3d2":
-             logging.info("OpenWeatherMap APIキーが設定されています。")
+    # APIキーのプレースホルダチェックを簡略化
+    if not api_key or "YOUR_OPENWEATHERMAP_API_KEY_HERE" in api_key:
+        logging.warning("OpenWeatherMap APIキーが未設定またはプレースホルダーのままです。")
+        return None, None, None, None, "APIキー未設定"
+    logging.info("OpenWeatherMap APIキーが設定されています。")
+
 
     api_url = "http://api.openweathermap.org/data/2.5/weather"
     params = {"q": location_query, "appid": api_key, "units": "metric", "lang": "ja"}
@@ -241,15 +250,31 @@ def calculate_and_format_time_until(departure_str, status_text_raw, current_dt_t
 @app.route('/')
 def index():
     app.config['ACTIVE_DATA_FETCH_INTERVAL'] = BUS_DATA_CACHE_DURATION_SECONDS
+    # 初期表示のバス停名はJavaScript側でAPIから取得するため、ここではダミーでOK
+    # もしくは固定の初期値を渡す
+    # ここでは、デフォルトの向きの名称を渡しておく
+    default_direction_data = STOPS_DATA.get('to_station')
     return render_template('index.html',
-                           from_stop=FROM_STOP_NAME,
-                           to_stop=TO_STOP_NAME,
+                           from_stop=default_direction_data["from_stop_name"],
+                           to_stop=default_direction_data["to_stop_name"],
                            config=app.config
                            )
 
 @app.route('/api/data')
 def api_data():
     global weather_cache, bus_data_cache, weather_fetched_today_g, last_date_weather_checked_g
+
+    current_direction_key = request.args.get('direction', 'to_station')
+    current_stops_data = STOPS_DATA.get(current_direction_key, STOPS_DATA["to_station"])
+
+    from_stop_no_current = current_stops_data["from_stop_no"]
+    to_stop_no_current = current_stops_data["to_stop_no"]
+    from_stop_name_current = current_stops_data["from_stop_name"]
+    to_stop_name_current = current_stops_data["to_stop_name"]
+
+    if current_direction_key not in bus_data_cache: # 方向別のキャッシュがなければ初期化
+        bus_data_cache[current_direction_key] = {"data": [], "timestamp": 0, "error": None, "data_valid": True}
+    active_bus_cache = bus_data_cache[current_direction_key] # 現在の方向のキャッシュを使用
 
     current_dt_tokyo = datetime.datetime.now(TOKYO_TZ)
     current_time_unix = time.time()
@@ -288,8 +313,8 @@ def api_data():
                               (current_hour == BUS_SERVICE_START_HOUR and current_dt_tokyo.minute < BUS_SERVICE_START_MINUTE)
 
     if is_before_service_hours:
-        if bus_data_cache.get("data"):
-            for bus_info_original in bus_data_cache["data"]:
+        if active_bus_cache.get("data"):
+            for bus_info_original in active_bus_cache["data"]:
                 bus_info = bus_info_original.copy()
                 time_until_str, is_urgent = calculate_and_format_time_until(
                     bus_info.get(KEY_DEPARTURE_TIME, ""),
@@ -299,19 +324,19 @@ def api_data():
                 bus_info[KEY_TIME_UNTIL] = time_until_str
                 bus_info[KEY_IS_URGENT] = is_urgent
                 processed_buses.append(bus_info)
-        bus_fetch_error = bus_data_cache.get("error")
-    elif current_time_unix - bus_data_cache.get("timestamp", 0) > BUS_DATA_CACHE_DURATION_SECONDS \
-         or not bus_data_cache.get("data_valid", False):
-        logging.info("バス情報を更新します (キャッシュ期限切れまたは無効データ)。")
-        bus_result = fetch_simplified_bus_departure_times(FROM_STOP_NO, TO_STOP_NO)
-        bus_data_cache["data"] = bus_result.get("buses", [])
-        bus_data_cache["error"] = bus_result.get("error")
-        bus_data_cache["timestamp"] = current_time_unix
-        bus_data_cache["data_valid"] = not bus_result.get("error")
+        bus_fetch_error = active_bus_cache.get("error")
+    elif current_time_unix - active_bus_cache.get("timestamp", 0) > BUS_DATA_CACHE_DURATION_SECONDS \
+         or not active_bus_cache.get("data_valid", False):
+        logging.info(f"バス情報({current_direction_key})を更新します (キャッシュ期限切れまたは無効データ)。")
+        bus_result = fetch_simplified_bus_departure_times(from_stop_no_current, to_stop_no_current)
+        active_bus_cache["data"] = bus_result.get("buses", [])
+        active_bus_cache["error"] = bus_result.get("error")
+        active_bus_cache["timestamp"] = current_time_unix
+        active_bus_cache["data_valid"] = not bus_result.get("error")
 
-    bus_fetch_error = bus_data_cache.get("error")
-    if bus_data_cache.get("data"):
-        for bus_info_original in bus_data_cache["data"]:
+    bus_fetch_error = active_bus_cache.get("error")
+    if active_bus_cache.get("data"):
+        for bus_info_original in active_bus_cache["data"]:
             bus_info = bus_info_original.copy()
             time_until_str, is_urgent = calculate_and_format_time_until(
                 bus_info.get(KEY_DEPARTURE_TIME, ""),
@@ -342,10 +367,10 @@ def api_data():
         weather_data=weather_data_to_display,
         buses_to_display=processed_buses,
         bus_error_message=bus_fetch_error,
-        bus_last_updated_str=datetime.datetime.fromtimestamp(bus_data_cache.get("timestamp", 0), TOKYO_TZ).strftime('%H:%M:%S') if bus_data_cache.get("timestamp", 0) > 0 else "N/A",
+        bus_last_updated_str=datetime.datetime.fromtimestamp(active_bus_cache.get("timestamp", 0), TOKYO_TZ).strftime('%H:%M:%S') if active_bus_cache.get("timestamp", 0) > 0 else "N/A",
         system_status={'healthy': system_healthy, 'warning': system_warning},
-        from_stop=FROM_STOP_NAME,
-        to_stop=TO_STOP_NAME
+        from_stop=from_stop_name_current,
+        to_stop=to_stop_name_current
     )
 
 if __name__ == '__main__':
