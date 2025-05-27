@@ -500,15 +500,25 @@
         let activeBusesData = [];
         let countdownIntervalId = null;
 
+        // 秒数を "あとMM分SS秒" または "まもなく" 等の形式に変換する関数
         function formatSecondsToCountdown(seconds) {
             if (seconds < 0) return "出発済み";
-            if (seconds <= 15) return "まもなく発車";
+            if (seconds <= 15) return "まもなく発車"; // 15秒以内は「まもなく」
+
             const minutes = Math.floor(seconds / 60);
             const remainingSeconds = seconds % 60;
-            if (minutes > 0) {
-                return `あと${minutes}分${remainingSeconds}秒`;
-            } else {
-                return `あと${remainingSeconds}秒`;
+
+            if (seconds <= 180) { // 3分 (180秒) 以内の場合
+                if (minutes > 0) {
+                    return `あと${minutes}分${remainingSeconds}秒`;
+                } else {
+                    return `あと${remainingSeconds}秒`;
+                }
+            } else { // 3分より大きい場合
+                // 分単位で切り上げて表示する（例：3分1秒でも「あと4分」）
+                // もし切り捨てが良い場合は Math.floor(seconds / 60) を使う
+                const minutesRoundedUp = Math.ceil(seconds / 60);
+                return `あと${minutesRoundedUp}分`;
             }
         }
 
