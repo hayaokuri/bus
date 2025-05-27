@@ -4,184 +4,395 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>バス接近情報 {{ from_stop }} → {{ to_stop }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --text-color: #1c1e21;
+            --text-color-light: #495057;
+            --text-color-subtle: #6c757d;
+            --card-bg-color: #fff;
+            --card-border-color: #e0e0e0;
+            --primary-color: #0d6efd;
+            --primary-color-darker: #0056b3;
+            --urgent-color: #d32f2f;
+            --urgent-color-text: #c62828;
+            --urgent-bg-color: #ffebee;
+            --header-bg-color: #fff;
+            --container-bg-color: #fff;
+            --indicator-default-bg: #6c757d;
+            --indicator-default-border: #5a6268;
+            --indicator-green-bg: #28a745;
+            --indicator-green-border: #1e7e34;
+            --indicator-yellow-bg: #ffc107;
+            --indicator-yellow-border: #d39e00;
+            --indicator-red-bg: #dc3545;
+            --indicator-red-border: #b21f2d;
+            --weather-info-bg: #e0f7fa;
+            --weather-info-border: #b2ebf2;
+            --weather-info-text-strong: #00796b;
+            --info-message-bg: #cfe2ff;
+            --info-message-border: #b6d4fe;
+            --info-message-text: #0d6efd;
+            --error-message-bg: #ffcdd2;
+            --error-message-border: #ef9a9a;
+            --error-message-text: #d32f2f;
+            --button-bg: #007bff;
+            --button-text-color: #fff;
+            --button-hover-bg: #0056b3;
+            --footer-border-color: #eee;
+
+            --font-family-base: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body.dark-mode {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --text-color-light: #b0b0b0;
+            --text-color-subtle: #888;
+            --card-bg-color: #1e1e1e;
+            --card-border-color: #333;
+            --primary-color: #4dabf7;
+            --primary-color-darker: #1a7fdb;
+            --urgent-color: #ff7b7b;
+            --urgent-color-text: #f44336;
+            --urgent-bg-color: #3e2723; /* より暗い赤系の背景 */
+            --header-bg-color: #1e1e1e;
+            --container-bg-color: #1a1a1a;
+            --indicator-default-bg: #b0b0b0;
+            --indicator-default-border: #888;
+            --indicator-green-bg: #38d969;
+            --indicator-green-border: #29ab51;
+            --indicator-yellow-bg: #ffd54f;
+            --indicator-yellow-border: #ffc107;
+            --indicator-red-bg: #ef5350;
+            --indicator-red-border: #e53935;
+            --weather-info-bg: #1c2a38;
+            --weather-info-border: #2c3e50;
+            --weather-info-text-strong: #4fc3f7;
+            --info-message-bg: #1a3a5c;
+            --info-message-border: #2a5288;
+            --info-message-text: #82b1ff;
+            --error-message-bg: #4a1c1c;
+            --error-message-border: #803030;
+            --error-message-text: #ff8a80;
+            --button-bg: #4dabf7;
+            --button-text-color: #121212;
+            --button-hover-bg: #1a7fdb;
+            --footer-border-color: #333;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            margin: 15px;
-            background-color: #f0f2f5;
-            color: #1c1e21;
-            line-height: 1.6;
+            font-family: var(--font-family-base);
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.7;
         }
         .container {
-            max-width: 700px;
-            margin: 20px auto;
-            background-color: #fff;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            max-width: 750px;
+            margin: 30px auto;
+            background-color: var(--container-bg-color);
+            padding: 20px 30px 30px 30px; /* 上のパディングを少し減らす */
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
         }
-        h1 {
-            font-size: 2em;
-            color: #0d6efd;
+        body.dark-mode .container {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .theme-toggle-container {
+            text-align: right;
             margin-bottom: 10px;
+        }
+
+        #theme-toggle-button {
+            background-color: var(--button-bg);
+            color: var(--button-text-color);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.2s ease-in-out;
+        }
+        #theme-toggle-button:hover {
+            background-color: var(--button-hover-bg);
+        }
+        #theme-toggle-button .fas {
+            margin-right: 5px;
+        }
+
+        h1 {
+            font-size: 2.2em;
+            color: var(--primary-color);
+            margin-top: 0; /* ボタンとの間隔調整 */
+            margin-bottom: 20px;
             text-align: center;
-            border-bottom: 2px solid #0d6efd;
+            border-bottom: 2px solid var(--primary-color); /* テーマカラーに合わせる */
             padding-bottom: 10px;
         }
         h2 {
-            font-size: 1.4em;
-            color: #343a40;
-            margin-top: 30px;
+            font-size: 1.5em; /* 少し大きく */
+            color: var(--text-color);
+            margin-top: 35px;
             margin-bottom: 15px;
-            border-bottom: 1px solid #dee2e6;
-            padding-bottom: 8px;
+            border-bottom: 1px solid var(--card-border-color);
+            padding-bottom: 10px;
         }
-        .header-info p {
-            margin: 6px 0;
-            font-size: 1em;
+        .header-info p, .status-bar p {
+            margin: 8px 0; /* 少し余白を増やす */
+            font-size: 1.05em;
+        }
+        .header-info p .fas, .status-bar p .fas { /* アイコンとテキストの間隔 */
+            margin-right: 8px;
+            color: var(--primary-color-darker);
+        }
+        body.dark-mode .header-info p .fas, body.dark-mode .status-bar p .fas {
+            color: var(--primary-color);
+        }
+
+        .header-info {
+            background-color: var(--header-bg-color);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border: 1px solid var(--card-border-color);
+        }
+        .status-bar {
+            background-color: var(--header-bg-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid var(--card-border-color);
         }
         .weather-info {
-            font-size: 0.95em;
-            padding: 10px 12px;
-            background-color: #e0f7fa;
-            border: 1px solid #b2ebf2;
-            border-radius: 6px;
-            margin-bottom: 20px;
+            font-size: 1em;
+            padding: 15px;
+            background-color: var(--weather-info-bg);
+            border: 1px solid var(--weather-info-border);
+            border-radius: 8px;
+            margin-bottom: 25px;
         }
-        .weather-info strong { color: #00796b; }
+        .weather-info p { margin: 5px 0; }
+        .weather-info strong { color: var(--weather-info-text-strong); }
+        .weather-info .fas { margin-right: 8px; color: var(--weather-info-text-strong); }
+        .weather-info .urgent-text .fas { color: var(--urgent-color); }
+
+
         .bus-list { list-style: none; padding: 0; }
         .bus-item {
-            background-color: #fff;
-            border: 1px solid #e0e0e0;
-            padding: 15px;
-            margin-bottom: 12px;
-            border-radius: 8px;
-            transition: box-shadow 0.2s ease-in-out;
+            background-color: var(--card-bg-color);
+            border: 1px solid var(--card-border-color);
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        body.dark-mode .bus-item {
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         .bus-item:hover {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
         }
+        body.dark-mode .bus-item:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .bus-item-main {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap; /* 画面幅が狭い場合に折り返す */
+        }
+
+        .bus-number {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-right: 10px;
+            min-width: 25px;
+        }
+        .bus-number .fas { /* 緊急アイコン用 */
+           color: var(--urgent-color-text);
+        }
+        body.dark-mode .bus-number .fas {
+            color: var(--urgent-color);
+        }
+
+
+        .departure-time {
+            font-size: 1.5em; /* 時刻をより大きく */
+            font-weight: bold;
+            color: var(--text-color);
+            margin-right: 12px;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 600;
+            color: #fff;
+            text-align: center;
+            white-space: nowrap;
+            line-height: 1.5;
+        }
+        /* ダークモード時の特定バッジの文字色調整 */
+        body.dark-mode .status-badge.status-type-delayed-possible {
+            color: #111; /* 黄色背景に黒文字 */
+        }
+
+
+        .status-type-on-time { background-color: var(--indicator-green-bg); }
+        .status-type-delayed-possible { background-color: var(--indicator-yellow-bg); color: #333; }
+        .status-type-scheduled { background-color: #17a2b8; }
+        body.dark-mode .status-type-scheduled { background-color: #26c6da; }
+        .status-type-soon { background-color: var(--urgent-color); }
+        .status-type-departed { background-color: var(--indicator-default-bg); }
+
+
+        .bus-item-sub {
+            font-size: 0.95em;
+            color: var(--text-color-light);
+            margin-left: 35px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .bus-item-sub span:not(:last-child) {
+            margin-right: 15px;
+        }
+
+        .time-until-text {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        .time-until-text .fas { margin-right: 5px; }
+
+        .details.status-on-time-detail {
+            color: var(--indicator-green-bg);
+        }
+        .details.status-on-time-detail .fas { margin-right: 5px; }
+
+
         .bus-item.urgent {
-            border-left: 6px solid #d32f2f;
-            background-color: #ffebee;
+            border-left: 6px solid var(--urgent-color);
+            background-color: var(--urgent-bg-color);
         }
-        .bus-item.urgent strong, .bus-item.urgent .time-until-text {
-            color: #c62828;
-            font-weight: bold;
+        .bus-item.urgent .departure-time,
+        .bus-item.urgent .bus-number { /* bus-number 全体ではなく、中のテキストのみ */
+            color: var(--urgent-color-text);
         }
-        .bus-item strong { font-size: 1.15em; }
-        .bus-item .details { font-size: 0.9em; color: #495057; margin-left: 20px; margin-top: 5px;}
+        .bus-item.urgent .status-badge.status-type-soon {
+             background-color: var(--urgent-color); /* 強調のため再度指定 */
+             color: #fff; /* 緊急時は白文字固定 */
+        }
+        body.dark-mode .bus-item.urgent .departure-time,
+        body.dark-mode .bus-item.urgent .bus-number {
+             color: var(--urgent-color);
+        }
+         body.dark-mode .bus-item.urgent .status-badge.status-type-soon {
+            color: #fff; /* ダークモードでも白文字 */
+            background-color: var(--urgent-color);
+        }
+
+
         .error-message {
-            color: #d32f2f;
+            color: var(--error-message-text);
             font-weight: bold;
-            background-color: #ffcdd2;
+            background-color: var(--error-message-bg);
             padding: 12px;
             border-radius: 6px;
-            border: 1px solid #ef9a9a;
+            border: 1px solid var(--error-message-border);
         }
         .info-message {
-            color: #0d6efd;
-            background-color: #cfe2ff;
+            color: var(--info-message-text);
+            background-color: var(--info-message-bg);
             padding: 12px;
             border-radius: 6px;
-            border: 1px solid #b6d4fe;
+            border: 1px solid var(--info-message-border);
         }
+        .error-message .fas, .info-message .fas, .error-message .far, .info-message .far {
+            margin-right: 8px;
+        }
+
         .footer {
             font-size: 0.85em;
-            color: #6c757d;
+            color: var(--text-color-subtle);
             margin-top: 35px;
             text-align: center;
-            border-top: 1px solid #eee;
+            border-top: 1px solid var(--footer-border-color);
             padding-top: 15px;
         }
         .footer p { margin: 4px 0; }
-        .urgent-text { color: #d32f2f; font-weight: bold; }
-        .time-until-text { font-weight: normal; color: #333; }
+        .urgent-text { color: var(--urgent-color); font-weight: bold; }
+        /* グローバルな .time-until-text は削除または調整。バスリスト内の .time-until-text で詳細指定 */
 
         .indicator {
             display: inline-block;
             width: 14px;
             height: 14px;
             border-radius: 50%;
-            background-color: #6c757d;
+            background-color: var(--indicator-default-bg);
             margin-right: 6px;
             vertical-align: middle;
-            border: 1px solid #5a6268;
+            border: 1px solid var(--indicator-default-border);
             box-shadow: 0 0 3px rgba(0,0,0,0.2);
         }
         .indicator.green {
-            background-color: #28a745;
-            border-color: #1e7e34;
+            background-color: var(--indicator-green-bg);
+            border-color: var(--indicator-green-border);
         }
         .indicator.yellow {
-            background-color: #ffc107;
-            border-color: #d39e00;
+            background-color: var(--indicator-yellow-bg);
+            border-color: var(--indicator-yellow-border);
         }
         .indicator.red {
-            background-color: #dc3545;
-            border-color: #b21f2d;
-        }
-        .direction-switcher {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .direction-switcher a {
-            display: inline-block;
-            padding: 8px 15px;
-            background-color: #0d6efd;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            margin: 0 5px;
-            font-size: 0.9em;
-        }
-        .direction-switcher a.active {
-            background-color: #0a58ca;
-            font-weight: bold;
-        }
-        .last-updated-label {
-            font-size: 0.8em;
-            color: #555;
-            display: block;
-            margin-top: 5px;
+            background-color: var(--indicator-red-bg);
+            border-color: var(--indicator-red-border);
         }
     </style>
-</head>
-<body>
+</head><body>
     <div class="container">
-        <h1>バス接近情報</h1>
-
-        <div class="direction-switcher">
-            <a href="?direction=sannodai_to_isehara" id="link_sannodai_to_isehara">産業能率大学 発 → 伊勢原駅北口 行き</a>
-            <a href="?direction=isehara_to_sannodai" id="link_isehara_to_sannodai">伊勢原駅北口 発 → 産業能率大学 行き</a>
+        <div class="theme-toggle-container">
+            <button id="theme-toggle-button"><i class="fas fa-adjust"></i> テーマ切替</button>
         </div>
-
+        <h1><i class="fas fa-bus-alt"></i> バス接近情報</h1>
         <div class="header-info">
-            <p><strong>区間:</strong> <span id="from-stop-name">{{ from_stop }}</span> → <span id="to-stop-name">{{ to_stop }}</span></p>
-            <p><strong>現在時刻:</strong> <span id="current-time-display">時刻取得中...</span></p>
+            <p><strong><i class="fas fa-map-signs"></i> 区間:</strong> <span id="from-stop-name">{{ from_stop }}</span> → <span id="to-stop-name">{{ to_stop }}</span></p>
+            <p><strong><i class="fas fa-clock"></i> 現在時刻:</strong> <span id="current-time-display">時刻取得中...</span></p>
             <p>
-                <strong>サーバー状態:</strong>
+                <strong><i class="fas fa-server"></i> サーバー状態:</strong>
                 <span id="server-status-indicator" class="indicator"></span>
                 <span id="server-status-text">確認中...</span>
             </p>
+            <p><strong><i class="fas fa-calendar-alt"></i> 運用日数:</strong> <span id="uptime-days">{{ initial_uptime_days | default('--') }}</span> 日目</p>
         </div>
 
         <div class="weather-info" id="weather-info-area">
-            <p>天気情報取得中...</p>
-            <span class="last-updated-label">最終更新: <span id="weather-last-updated">N/A</span></span>
+            <p><i class="fas fa-spinner fa-spin"></i> 天気情報取得中...</p>
+        </div>
+
+        <div class="status-bar" id="app-status-area">
+            <p><strong><i class="fas fa-info-circle"></i> 現在のアプリの状態:</strong> <span id="app-state-message-display">確認中...</span></p>
         </div>
 
         <h2>【今後のバス】</h2>
-        <p><small>バス情報最終更新: <span id="bus-last-updated">N/A</span></small></p>
+        <p><small><i class="fas fa-sync-alt"></i> バス情報最終更新: <span id="bus-last-updated">N/A</span></small></p>
 
         <div id="bus-info-container">
-            <p class="info-message">バス情報を取得中です...</p>
+            <p class="info-message"><i class="fas fa-spinner fa-spin"></i> バス情報を取得中です...</p>
         </div>
     </div>
 
     <div class="footer">
-        <p><small>データ提供: 神奈川中央交通</small></p>
-        <p><small>&copy; 2024 バス観測サイト</small></p>
+        <p id="next-fetch-info">バス・天気情報は定期的にサーバーから再取得します。</p>
+        <p><small>(表示は1秒毎更新)</small></p>
     </div>
 
     <script>
@@ -224,63 +435,51 @@
                 }
             }
         }
+        setInterval(updateCurrentTime, 1000);
+        updateCurrentTime();
+
+        const themeToggleButton = document.getElementById('theme-toggle-button');
+        const userPreferredTheme = localStorage.getItem('theme');
+        const osPreferredTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark-mode' : '';
+
+        if (userPreferredTheme) {
+            document.body.classList.add(userPreferredTheme);
+        } else if (osPreferredTheme) {
+            document.body.classList.add(osPreferredTheme);
+        }
+
+        themeToggleButton.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            let theme = document.body.classList.contains('dark-mode') ? 'dark-mode' : '';
+            localStorage.setItem('theme', theme);
+        });
+
+        function getWeatherIconClass(conditionCode) {
+            if (!conditionCode) return 'fa-question-circle';
+            const code = parseInt(conditionCode, 10);
+            if (code >= 200 && code < 300) return 'fa-bolt';
+            if (code >= 300 && code < 400) return 'fa-cloud-rain'; // Drizzle (fa-cloud-drizzle might not be in older FA)
+            if (code >= 500 && code < 600) return 'fa-cloud-showers-heavy';
+            if (code >= 600 && code < 700) return 'fa-snowflake';
+            if (code >= 700 && code < 800) return 'fa-smog';
+            if (code === 800) return 'fa-sun';
+            if (code === 801) return 'fa-cloud-sun';
+            if (code > 801 && code < 805) return 'fa-cloud';
+            return 'fa-question-circle';
+        }
 
         const dataUpdateInterval = parseInt("{{ config.get('ACTIVE_DATA_FETCH_INTERVAL', 10) }}", 10) * 1000;
-        let currentDirection = '{{ current_direction | default("sannodai_to_isehara") }}';
-
-        function setActiveLink() {
-            const linkSannodai = document.getElementById('link_sannodai_to_isehara');
-            const linkIsehara = document.getElementById('link_isehara_to_sannodai');
-            if (linkSannodai) linkSannodai.classList.remove('active');
-            if (linkIsehara) linkIsehara.classList.remove('active');
-
-            if (currentDirection === 'sannodai_to_isehara' && linkSannodai) {
-                linkSannodai.classList.add('active');
-            } else if (currentDirection === 'isehara_to_sannodai' && linkIsehara) {
-                linkIsehara.classList.add('active');
-            }
-        }
-        setActiveLink();
 
         async function fetchAndUpdateData() {
             try {
-                const params = new URLSearchParams(window.location.search);
-                const directionForAPI = params.get('direction') || currentDirection;
-                console.log("Fetching data for direction:", directionForAPI);
-
-                const response = await fetch(`/api/data?direction=${directionForAPI}`);
-                console.log("Response status:", response.status);
+                const response = await fetch('/api/data');
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data = await response.json();
-                console.log("Data received from API:", data);
 
-                let element;
-
-                console.log("Attempting to update from-stop-name. Element ID: 'from-stop-name'");
-                element = document.getElementById('from-stop-name');
-                if (!element) { console.error("'from-stop-name' not found!"); throw new Error("'from-stop-name' not found!");}
-                element.textContent = data.from_stop;
-
-                console.log("Attempting to update to-stop-name. Element ID: 'to-stop-name'");
-                element = document.getElementById('to-stop-name');
-                if (!element) { console.error("'to-stop-name' not found!"); throw new Error("'to-stop-name' not found!");}
-                element.textContent = data.to_stop;
-
-                // ★ ページタイトル全体の更新に変更
-                console.log("Attempting to update document title.");
-                document.title = `バス接近情報 ${data.from_stop} → ${data.to_stop}`;
-                console.log("Document title updated to:", document.title);
-
-                // ★ 'title-from-stop' と 'title-to-stop' のIDを持つspanへの更新処理は削除
-
-                console.log("Attempting to update server-status-indicator and server-status-text. Element IDs: 'server-status-indicator', 'server-status-text'");
                 const statusIndicator = document.getElementById('server-status-indicator');
                 const statusText = document.getElementById('server-status-text');
-                if (!statusIndicator) console.error("'server-status-indicator' not found!");
-                if (!statusText) console.error("'server-status-text' not found!");
-
                 if (statusIndicator && statusText) {
                     if (data.system_status) {
                         if (data.system_status.healthy) {
@@ -299,104 +498,138 @@
                     }
                 }
 
-                console.log("Attempting to get weather-info-area. Element ID: 'weather-info-area'");
+                const uptimeDaysSpan = document.getElementById('uptime-days');
+                if (uptimeDaysSpan && data.uptime_days !== undefined) {
+                    uptimeDaysSpan.textContent = data.uptime_days;
+                }
+
                 const weatherInfoArea = document.getElementById('weather-info-area');
-                if (!weatherInfoArea) { console.error("'weather-info-area' not found!"); throw new Error("'weather-info-area' not found!");}
-
-                console.log("Attempting to update weather-last-updated. Element ID: 'weather-last-updated'");
-                const weatherLastUpdatedSpan = document.getElementById('weather-last-updated');
-                if (!weatherLastUpdatedSpan) { console.error("'weather-last-updated' not found!"); throw new Error("'weather-last-updated' not found!");}
-
                 let weatherHtml = '';
                 if (data.weather_data) {
                     if (data.weather_data.error_message) {
-                        weatherHtml = `<p class="error-message">天気情報: ${data.weather_data.error_message}</p>`;
-                    } else if (data.weather_data.condition) {
-                        weatherHtml = `<p><strong>伊勢原の天気:</strong> ${data.weather_data.description || data.weather_data.condition}
-                                       ${data.weather_data.temp_c !== null ? ` (${data.weather_data.temp_c.toFixed(1)}℃)` : ''}
-                                       ${data.weather_data.is_rain ? ' <span class="urgent-text">傘を忘れずに！</span>' : ''}
-                                     </p>`;
+                        weatherHtml = `<p class="error-message"><i class="fas fa-exclamation-triangle"></i> 天気情報: ${data.weather_data.error_message}</p>`;
+                    } else if (data.weather_data.condition || data.weather_data.description) {
+                        const iconClass = getWeatherIconClass(data.weather_data.condition_code);
+                        weatherHtml = `<p>
+                                           <strong>
+                                               <i class="fas ${iconClass}"></i>
+                                               伊勢原の天気:
+                                           </strong>
+                                           ${data.weather_data.description || data.weather_data.condition}
+                                           ${data.weather_data.temp_c !== null ? ` (${data.weather_data.temp_c.toFixed(1)}℃)` : ''}
+                                           ${data.weather_data.is_rain ? ` <span class="urgent-text"><i class="fas fa-umbrella"></i> 傘を忘れずに！</span>` : ''}
+                                         </p>`;
                     } else {
-                        weatherHtml = '<p>天気情報なし</p>';
+                        weatherHtml = '<p><i class="fas fa-question-circle"></i> 天気情報なし</p>';
                     }
                 } else {
-                    weatherHtml = '<p>天気情報取得エラー</p>';
+                    weatherHtml = '<p class="error-message"><i class="fas fa-exclamation-triangle"></i> 天気情報取得エラー</p>';
                 }
-                const weatherContentParagraph = weatherInfoArea.querySelector('p:not(.last-updated-label)');
-                if (weatherContentParagraph) {
-                    weatherContentParagraph.outerHTML = weatherHtml;
-                } else {
-                    weatherInfoArea.insertAdjacentHTML('afterbegin', weatherHtml);
-                }
-                if (weatherLastUpdatedSpan && data.weather_last_updated_str) {
-                    weatherLastUpdatedSpan.textContent = data.weather_last_updated_str;
+                weatherInfoArea.innerHTML = weatherHtml;
+
+                const appStateMsgDisplay = document.getElementById('app-state-message-display');
+                if (appStateMsgDisplay) {
+                    appStateMsgDisplay.textContent = data.app_state_message || 'N/A';
                 }
 
-                console.log("Attempting to update bus-last-updated. Element ID: 'bus-last-updated'");
                 const busLastUpdatedSpan = document.getElementById('bus-last-updated');
-                if (!busLastUpdatedSpan) { console.error("'bus-last-updated' not found!"); throw new Error("'bus-last-updated' not found!");}
-                busLastUpdatedSpan.textContent = data.bus_last_updated_str || "N/A";
+                if (busLastUpdatedSpan) {
+                    busLastUpdatedSpan.textContent = data.bus_last_updated_str || "N/A";
+                }
 
-
-                console.log("Attempting to get bus-info-container. Element ID: 'bus-info-container'");
                 const busInfoContainer = document.getElementById('bus-info-container');
-                if (!busInfoContainer) { console.error("'bus-info-container' not found!"); throw new Error("'bus-info-container' not found!");}
-
                 let busesHtml = '';
                 if (data.bus_error_message) {
-                    busesHtml = `<p class="error-message" data-bus-error>バス情報取得エラー: ${data.bus_error_message}</p>`;
+                    busesHtml = `<p class="error-message" data-bus-error><i class="fas fa-exclamation-circle"></i> バス情報取得エラー: ${data.bus_error_message}</p>`;
                 } else if (data.buses_to_display && data.buses_to_display.length > 0) {
                     busesHtml += '<ul class="bus-list">';
                     data.buses_to_display.forEach((bus, index) => {
+                        let departureTimeMain = bus.departure_time.replace(/\(予定通り\)|\(予定\)|\(遅延可能性あり\)|まもなく発車します|出発しました|通過しました/gi, '').trim();
+                        let statusLabel = '';
+                        let statusType = '';
+                        let isTrulyUrgent = false; // 「まもなく」または「あと数分」を示すフラグ
+
+                        if (bus.departure_time.includes("まもなく発車します") || (bus.time_until_departure && bus.time_until_departure.toLowerCase().includes("まもなく"))) {
+                            statusLabel = 'まもなく発車'; statusType = 'soon'; isTrulyUrgent = true;
+                        } else if (bus.departure_time.includes("出発しました") || bus.departure_time.includes("通過しました") || (bus.time_until_departure && bus.time_until_departure === "出発済み")) {
+                            statusLabel = '出発済み'; statusType = 'departed';
+                        } else if (bus.departure_time.includes("(予定通り)")) {
+                            statusLabel = '予定通り'; statusType = 'on-time';
+                        } else if (bus.departure_time.includes("(遅延可能性あり)")) {
+                            statusLabel = '遅延可能性あり'; statusType = 'delayed-possible';
+                        } else if (bus.departure_time.includes("(予定)")) {
+                            statusLabel = '予定'; statusType = 'scheduled';
+                        }
+
+                        // is_urgent フラグと time_until_departure を考慮して最終的な緊急度を判断
+                        if (bus.is_urgent && !isTrulyUrgent && statusType !== 'departed') { // is_urgent だが「まもなく」ではない場合
+                           if (bus.time_until_departure && (bus.time_until_departure.includes("あと") && (bus.time_until_departure.includes("秒") || bus.time_until_departure.includes("1分") || bus.time_until_departure.includes("2分") || bus.time_until_departure.includes("3分")))) {
+                                isTrulyUrgent = true;
+                                if (!statusLabel.includes("まもなく")) { // 他のステータスが優先されていない場合
+                                     statusLabel = 'まもなく発車'; statusType = 'soon';
+                                }
+                           }
+                        }
+
+
                         busesHtml += `
-                            <li class="bus-item ${bus.is_urgent ? 'urgent' : ''}">
-                                <p>
-                                    <strong>${index + 1}. ${bus.departure_time.replace(/\(予定通り\)|\(予定\)|\(遅延可能性あり\)/g, '').trim()}</strong>
-                                    ${bus.departure_time.includes("(予定通り)") ? ' (予定通り)' : ''}
-                                    ${bus.departure_time.includes("(予定)") ? ' (予定)' : ''}
-                                    ${bus.departure_time.includes("(遅延可能性あり)") ? ' (遅延可能性あり)' : ''}
-                                    ${(bus.time_until_departure && !bus.departure_time.includes(bus.time_until_departure)) ? `<span class="time-until-text">(${bus.time_until_departure})</span>` : ''}
-                                </p>
-                                ${bus.status_text.includes("予定通り発車します") ? `<p class="details status-on-time">予定通り発車します</p>` : ''}
-                                </li>`;
+                            <li class="bus-item ${isTrulyUrgent || (bus.is_urgent && statusType !== 'departed') ? 'urgent' : ''} status-${statusType}">
+                                <div class="bus-item-main">
+                                    <span class="bus-number">${isTrulyUrgent ? '<i class="fas fa-exclamation-triangle"></i> ' : ''}${index + 1}.</span>
+                                    <span class="departure-time">${departureTimeMain}</span>
+                                    ${statusLabel ? `<span class="status-badge status-type-${statusType}">${statusLabel}</span>` : ''}
+                                </div>
+                                <div class="bus-item-sub">
+                                    ${(bus.time_until_departure && !bus.departure_time.includes(bus.time_until_departure) && statusType !== 'departed' && !isTrulyUrgent) ? `<span class="time-until-text"><i class="fas fa-hourglass-half"></i> ${bus.time_until_departure}</span>` : ''}
+                                    ${(bus.status_text.includes("予定通り発車します") && statusType !== 'on-time' && statusType !== 'departed') ? `<span class="details status-on-time-detail"><i class="fas fa-check-circle"></i> 予定通り発車します</span>` : ''}
+                                </div>
+                            </li>`;
                     });
                     busesHtml += '</ul>';
                 } else {
                     let noBusMsg = '現在、利用可能なバス情報はありません。';
-                     if (data.buses_to_display && data.buses_to_display.length === 0 && !data.bus_error_message) {
-                        noBusMsg = '現在表示できるバス情報はありません。運行時間外か、本日の運行は終了した可能性があります。';
+                    if (data.app_state_message === '始発バス待機中 (早朝)' || (data.app_state_message && data.app_state_message.startsWith('始発バス待機中'))) {
+                        noBusMsg = 'バスの運行情報を確認中です...';
+                    } else if (data.app_state_message === '運行再開待機中 (終バス後など)') {
+                         noBusMsg = 'バス運行再開待機中...';
                     }
-                    busesHtml = `<p class="info-message" data-bus-info>${noBusMsg}</p>`;
+                    busesHtml = `<p class="info-message" data-bus-info><i class="far fa-clock"></i> ${noBusMsg}</p>`;
                 }
                 busInfoContainer.innerHTML = busesHtml;
 
-                if (data.current_direction) {
-                    currentDirection = data.current_direction;
-                    setActiveLink();
-                }
-
             } catch (error) {
-                console.error('データ更新に失敗しました (catch block):', error);
+                console.error('データ更新に失敗しました:', error);
                 const busInfoContainer = document.getElementById('bus-info-container');
                 if (busInfoContainer) {
-                    busInfoContainer.innerHTML = `<p class="error-message">データ更新に失敗しました。サーバーとの通信を確認してください。</p>`;
+                    busInfoContainer.innerHTML = `<p class="error-message"><i class="fas fa-broadcast-tower"></i> データ更新に失敗しました。サーバーとの通信を確認してください。</p>`;
                 }
                 const statusIndicator = document.getElementById('server-status-indicator');
                 const statusText = document.getElementById('server-status-text');
                 if (statusIndicator) statusIndicator.className = 'indicator red';
                 if (statusText) statusText.textContent = '通信エラー';
-                const weatherLastUpdatedSpan = document.getElementById('weather-last-updated');
-                 if (weatherLastUpdatedSpan) {
-                    weatherLastUpdatedSpan.textContent = 'N/A';
-                }
+
+                const uptimeDaysSpan = document.getElementById('uptime-days');
+                if (uptimeDaysSpan) uptimeDaysSpan.textContent = 'N/A';
+
+                const weatherInfoArea = document.getElementById('weather-info-area');
+                if(weatherInfoArea) weatherInfoArea.innerHTML = '<p class="error-message"><i class="fas fa-exclamation-triangle"></i> 天気情報更新エラー</p>';
             }
         }
 
-        updateCurrentTime();
-        setInterval(updateCurrentTime, 1000);
         fetchAndUpdateData();
         if (dataUpdateInterval > 0) {
             setInterval(fetchAndUpdateData, dataUpdateInterval);
+            const nextFetchInfoEl = document.getElementById('next-fetch-info');
+            if(nextFetchInfoEl && dataUpdateInterval > 1000) {
+                 nextFetchInfoEl.textContent = `バス・天気情報は約${dataUpdateInterval/1000}秒間隔でサーバーから再取得します。`;
+            } else if (nextFetchInfoEl) {
+                 nextFetchInfoEl.textContent = `バス・天気情報は高頻度でサーバーから再取得設定です。`;
+            }
+        } else {
+            const nextFetchInfoEl = document.getElementById('next-fetch-info');
+            if(nextFetchInfoEl) {
+                nextFetchInfoEl.textContent = 'バス・天気情報の自動更新は無効です。';
+            }
         }
     </script>
 </body>
