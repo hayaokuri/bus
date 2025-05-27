@@ -19,13 +19,11 @@ FROM_STOP_NO = "18137"
 TO_STOP_NO = "18100"
 FROM_STOP_NAME = "産業能率大学"
 TO_STOP_NAME = "伊勢原駅北口"
-MAX_BUSES_TO_FETCH = 10 # ★変更点: 5から10へ
-# WEATHER_FETCH_HOUR = 9 # ★削除: 毎時更新に変更するため不要に
+MAX_BUSES_TO_FETCH = 10
 BUS_SERVICE_START_HOUR = 6
 BUS_SERVICE_START_MINUTE = 20
 
-# 運用開始日 (実際の日付に修正してください)
-SERVICE_OPERATION_START_DATE = datetime.date(2024, 5, 1) # 例: 2024年5月1日
+SERVICE_OPERATION_START_DATE = datetime.date(2024, 5, 1) 
 
 TOKYO_TZ = pytz.timezone('Asia/Tokyo')
 
@@ -36,18 +34,14 @@ KEY_IS_URGENT = "is_urgent"
 
 app = Flask(__name__)
 
-# --- ロギング設定 ---
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(module)s - %(funcName)s - %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
 
-# --- グローバル変数 (App Engineではリクエストごとにリセットされるため、Datastore/Memcache推奨) ---
-weather_cache = {"data": None, "timestamp": 0, "error": None, "last_successful_fetch_time": None} # ★変更点: last_successful_fetch_time を追加
+weather_cache = {"data": None, "timestamp": 0, "error": None, "last_successful_fetch_time": None}
 bus_data_cache = {"data": [], "timestamp": 0, "error": None}
-# weather_fetched_today_g = False # ★削除: 毎時更新のため不要
-# last_date_weather_checked_g = None # ★削除: 毎時更新のため不要
 
-WEATHER_CACHE_DURATION_SECONDS = 60 * 60 # ★変更点: 1時間に設定 (30 * 60 から変更)
+WEATHER_CACHE_DURATION_SECONDS = 60 * 60 
 BUS_DATA_CACHE_DURATION_SECONDS = 10
 
 def send_discord_notification(message):
@@ -66,7 +60,6 @@ def send_discord_notification(message):
         logging.error(f"Discord通知送信中に予期せぬエラー: {e}")
 
 def get_weather_info(api_key, location_query):
-    # global weather_fetched_today_g # ★削除
     if not api_key or api_key == "YOUR_OPENWEATHERMAP_API_KEY_HERE":
         logging.warning("OpenWeatherMap APIキーが未設定。")
         return None, None, None, "APIキー未設定"
@@ -81,7 +74,6 @@ def get_weather_info(api_key, location_query):
             description = data["weather"][0].get("description")
             temp = data.get("main", {}).get("temp")
             logging.info(f"天気情報取得成功 ({location_query}): {main_condition} ({description}), 気温: {temp}°C")
-            # weather_fetched_today_g = True # ★削除
             return main_condition, description, temp, None
         return None, None, None, "APIレスポンス形式不正"
     except requests.exceptions.Timeout:
@@ -110,7 +102,7 @@ def fetch_simplified_bus_departure_times(from_stop_no, to_stop_no):
         bus_info_headings = main_content_area.find_all('h3', class_='heading3')
         if not bus_info_headings: return {"buses": [], "error": None}
         for heading_tag in bus_info_headings:
-            if len(bus_departure_list) >= MAX_BUSES_TO_FETCH: break #
+            if len(bus_departure_list) >= MAX_BUSES_TO_FETCH: break
             hgroup_element = heading_tag.parent
             bus_wrap_element = None
             if hgroup_element and hgroup_element.name == 'div' and 'hgroup01' in hgroup_element.get('class', []):
@@ -148,7 +140,6 @@ def fetch_simplified_bus_departure_times(from_stop_no, to_stop_no):
         error_msg = f"バス情報取得エラー: {e}"
         logging.error(error_msg)
         return {"buses": [], "error": error_msg}
-
 
 def calculate_and_format_time_until(departure_str, status_text_raw, current_dt_tokyo):
     is_urgent = False
@@ -212,37 +203,36 @@ def index():
 
 @app.route('/api/data')
 def api_data():
-    global weather_cache, bus_data_cache # ★変更点: weather_fetched_today_g, last_date_weather_checked_g を削除
+    global weather_cache, bus_data_cache
 
     current_dt_tokyo = datetime.datetime.now(TOKYO_TZ)
     current_time_unix = time.time()
-    # current_hour = current_dt_tokyo.hour # ★削除: 天気情報取得ロジック変更のため
-    # current_date = current_dt_tokyo.date() # ★削除: 天気情報取得ロジック変更のため
 
     # --- 天気情報の取得とキャッシュ (毎時更新) ---
-    weather_data_to_display = {}
-    
-    # ★変更点: 天気情報取得ロジックをキャッシュベースの毎時更新に変更
     if current_time_unix - weather_cache.get("timestamp", 0) > WEATHER_CACHE_DURATION_SECONDS or not weather_cache.get("data"):
         logging.info("天気情報を更新します (キャッシュ期限切れまたは初回)。")
         condition, description, temp, error = get_weather_info(OPENWEATHERMAP_API_KEY, WEATHER_LOCATION)
         if not error:
             weather_cache["data"] = {"condition": condition, "description": description, "temp_c": temp, "is_rain": (condition and "rain" in condition.lower())}
-            weather_cache["error"] = None # エラーがなければNoneに
-            weather_cache["last_successful_fetch_time"] = current_time_unix # 成功時刻を記録
+            weather_cache["error"] = None 
+            weather_cache["last_successful_fetch_time"] = current_time_unix 
         else:
-            # エラー時は前回の成功データを維持し、エラー情報のみ更新 (last_successful_fetch_time は更新しない)
-            # 初回取得でエラーだった場合は data は None のまま
             weather_cache["error"] = error
-        weather_cache["timestamp"] = current_time_unix # APIコール試行時刻は常に更新
+            # weather_cache["data"] はエラー時に更新しない (前回成功時の値を保持、または初期値Noneのまま)
+        weather_cache["timestamp"] = current_time_unix 
 
-    weather_data_to_display = weather_cache.get("data", {}) # データがなければ空のdict
-    weather_data_to_display["error_message"] = weather_cache.get("error")
-    
+    # ★修正点: weather_data_to_display が常に辞書であることを保証する
+    cached_weather_payload = weather_cache.get("data")
+    if cached_weather_payload is None:
+        weather_data_to_display = {} # キャッシュに有効なデータがない場合は空の辞書
+    else:
+        weather_data_to_display = cached_weather_payload.copy() # キャッシュデータのコピーを使用
+
+    weather_data_to_display["error_message"] = weather_cache.get("error") # これで安全
+
     last_weather_fetch_str = "N/A"
     if weather_cache.get("last_successful_fetch_time"):
         last_weather_fetch_str = datetime.datetime.fromtimestamp(weather_cache["last_successful_fetch_time"], TOKYO_TZ).strftime('%H:%M:%S')
-
 
     # --- バス情報の取得とキャッシュ ---
     processed_buses = []
@@ -301,7 +291,7 @@ def api_data():
         system_healthy = False
         logging.warning(f"システム状態: バス情報取得エラーのため不健康 - {bus_fetch_error}")
 
-    if weather_data_to_display.get("error_message"):
+    if weather_data_to_display.get("error_message"): # weather_data_to_display is now guaranteed to be a dict
         if "APIキー" in weather_data_to_display["error_message"] or "認証エラー" in weather_data_to_display["error_message"] :
             system_healthy = False
             logging.warning(f"システム状態: 天気APIキー/認証エラーのため不健康 - {weather_data_to_display['error_message']}")
@@ -319,7 +309,7 @@ def api_data():
 
     return jsonify(
         weather_data=weather_data_to_display,
-        weather_last_updated_str=last_weather_fetch_str, # ★変更点: 天気最終更新時刻を追加
+        weather_last_updated_str=last_weather_fetch_str,
         app_state_message=app_state_message,
         buses_to_display=processed_buses,
         bus_error_message=bus_fetch_error,
