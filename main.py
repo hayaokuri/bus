@@ -8,22 +8,44 @@ import time
 import os
 import pytz
 import logging
-# import threading # threadingは現在使用されていないためコメントアウトも検討
+import threading
+from google.cloud import secretmanager # 追加
 
-# --- 設定 (環境変数から読み込むことを推奨) ---
-OPENWEATHERMAP_API_KEY = os.environ.get("OPENWEATHERMAP_API_KEY", "YOUR_OPENWEATHERMAP_API_KEY_HERE")
-DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "YOUR_DISCORD_WEBHOOK_URL_HERE")
+# --- 設定 ---
+PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT") # Google CloudプロジェクトIDを環境変数から取得
+
+# Secret Managerクライアントを初期化
+client = secretmanager.SecretManagerServiceClient()
+
+def get_secret(secret_name, project_id):
+    """Secret Managerから最新バージョンのシークレットを取得する"""
+    if not project_id:
+        logging.error("GOOGLE_CLOUD_PROJECT環境変数が設定されていません。")
+        return None
+    try:
+        name = f"projects/{project_id}/secrets/{secret_name}/versions/latest"
+        response = client.access_secret_version(request={"name": name})
+        return response.payload.data.decode("UTF-8")
+    except Exception as e:
+        logging.error(f"Secret Managerからのシークレット '{secret_name}' の取得に失敗しました: {e}")
+        return None
+
+# 環境変数から直接読み込む代わりにSecret Managerから取得する
+OPENWEATHERMAP_API_KEY = get_secret("openweathermap-api-key", PROJECT_ID) or "YOUR_OPENWEATHERMAP_API_KEY_HERE_FALLBACK" # シークレット名に合わせて変更
+DISCORD_WEBHOOK_URL = get_secret("discord-webhook-url", PROJECT_ID) or "YOUR_DISCORD_WEBHOOK_URL_HERE_FALLBACK" # シークレット名に合わせて変更
+
 WEATHER_LOCATION = "Isehara,JP"
 BASE_URL = "http://real.kanachu.jp/pc/displayapproachinfo"
 FROM_STOP_NO = "18137"
 TO_STOP_NO = "18100"
 FROM_STOP_NAME = "産業能率大学"
 TO_STOP_NAME = "伊勢原駅北口"
-MAX_BUSES_TO_FETCH = 10
+MAX_BUSES_TO_FETCH = 5
+WEATHER_FETCH_HOUR = 9
 BUS_SERVICE_START_HOUR = 6
 BUS_SERVICE_START_MINUTE = 20
 
-# SERVICE_OPERATION_START_DATE = datetime.date(2024, 5, 1) # ★削除: 運用日数を表示しないため不要
+SERVICE_OPERATION_START_DATE = datetime.date(2024, 5, 1)
 
 TOKYO_TZ = pytz.timezone('Asia/Tokyo')
 
@@ -308,9 +330,13 @@ def api_data():
     )
 
 if __name__ == '__main__':
-    if not DISCORD_WEBHOOK_URL or DISCORD_WEBHOOK_URL == "YOUR_DISCORD_WEBHOOK_URL_HERE":
-        logging.warning("ローカルテスト: Discord Webhook URL未設定")
-    if not OPENWEATHERMAP_API_KEY or OPENWEATHERMAP_API_KEY == "YOUR_OPENWEATHERMAP_API_KEY_HERE":
-        logging.warning("ローカルテスト: OpenWeatherMap APIキー未設定")
-    # logging.info(f"SERVICE_OPERATION_START_DATE: {SERVICE_OPERATION_START_DATE}") # SERVICE_OPERATION_START_DATE を削除したため不要
+    if not PROJECT_ID:
+        logging.warning("ローカルテスト: GOOGLE_CLOUD_PROJECT環境変数が設定されていません。Secret Managerからの読み込みはスキップされます。")
+
+    if not OPENWEATHERMAP_API_KEY or OPENWEATHERMAP_API_KEY.endswith("_FALLBACK"):
+        logging.warning("ローカルテスト: OpenWeatherMap APIキーがSecret Managerから取得できなかったか、フォールバック値が使用されています。")
+    if not DISCORD_WEBHOOK_URL or DISCORD_WEBHOOK_URL.endswith("_FALLBACK"):
+        logging.warning("ローカルテスト: Discord Webhook URLがSecret Managerから取得できなかったか、フォールバック値が使用されています。")
+
+    logging.info(f"SERVICE_OPERATION_START_DATE: {SERVICE_OPERATION_START_DATE}")
     app.run(host='127.0.0.1', port=8080, debug=True)
