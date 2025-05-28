@@ -78,7 +78,6 @@ def send_discord_notification(message):
     if not DISCORD_WEBHOOK_URL or "YOUR_DISCORD_WEBHOOK_URL_HERE" in DISCORD_WEBHOOK_URL:
         logging.warning("Discord Webhook URLが未設定またはプレースホルダーのままのため、通知は送信されません。")
         return
-    # logging.info("Discord Webhook URLが設定されています。")
     payload = {"content": message, "username": "バス情報チェッカー"}
     headers = {"Content-Type": "application/json"}
     try:
@@ -95,7 +94,6 @@ def get_weather_info(api_key, location_query):
     if not api_key or "YOUR_OPENWEATHERMAP_API_KEY_HERE" in api_key:
         logging.warning("OpenWeatherMap APIキーが未設定またはプレースホルダーのままです。")
         return None, None, None, None, "APIキー未設定"
-    # logging.info("OpenWeatherMap APIキーが設定されています。")
     api_url = "http://api.openweathermap.org/data/2.5/weather"
     params = {"q": location_query, "appid": api_key, "units": "metric", "lang": "ja"}
     try:
@@ -116,8 +114,7 @@ def get_weather_info(api_key, location_query):
         return None, None, None, None, "タイムアウト"
     except requests.exceptions.HTTPError as http_err:
         error_message = f"HTTPエラー {http_err.response.status_code}"
-        if http_err.response.status_code == 401:
-             error_message = "APIキーが無効か認証エラーです。"
+        if http_err.response.status_code == 401: error_message = "APIキーが無効か認証エラーです。"
         logging.error(f"天気情報取得HTTPエラー ({location_query}): {http_err}")
         return None, None, None, None, error_message
     except Exception as e:
@@ -128,7 +125,6 @@ def parse_bus_info_from_html(html_content):
     soup = BeautifulSoup(html_content, 'html.parser')
     bus_departure_list = []
     bus_wrappers = soup.select('div.inner2.pa01 > div.wrap')
-
     for wrap_element in bus_wrappers:
         col01 = wrap_element.find('div', class_='col01')
         system_route_name = "不明"; destination_name = "不明"; via_info = "不明"; vehicle_no = None; duration_text = "不明"
@@ -168,12 +164,10 @@ def parse_bus_info_from_html(html_content):
         delay_match_title = re.search(r'\(現在、?約?(\d+分)遅れ\)?', status_text_from_title01)
         if delay_match_title and not parsed_delay_info: parsed_delay_info = delay_match_title.group(1)
         if departure_time_from_notes and "発予定" in departure_time_from_notes :
-            if not ("まもなく" in status_text_from_title01 or "出発しました" in status_text_from_title01 or "遅れ" in status_text_from_title01 or parsed_delay_info):
-                 final_status_text = departure_time_from_notes
+            if not ("まもなく" in status_text_from_title01 or "出発しました" in status_text_from_title01 or "遅れ" in status_text_from_title01 or parsed_delay_info): final_status_text = departure_time_from_notes
             else:
                 time_part_match_original = re.search(r'\d{1,2}:\d{2}', status_text_from_title01); time_part_match_notes = re.search(r'\d{1,2}:\d{2}', departure_time_from_notes)
-                current_status_part = re.sub(r'\S*を\d{1,2}:\d{2}発予定', '', status_text_from_title01, count=1).strip()
-                current_status_part = re.sub(r'\d{1,2}:\d{2}発', '', current_status_part).strip()
+                current_status_part = re.sub(r'\S*を\d{1,2}:\d{2}発予定', '', status_text_from_title01, count=1).strip(); current_status_part = re.sub(r'\d{1,2}:\d{2}発', '', current_status_part).strip()
                 if time_part_match_notes: final_status_text = f"{time_part_match_notes.group(0)}発 {current_status_part}"
                 elif time_part_match_original: final_status_text = f"{time_part_match_original.group(0)}発 {current_status_part}"
                 else: final_status_text = current_status_part
@@ -309,9 +303,16 @@ def api_data():
             time_until_str, is_urgent, seconds_until, departure_dt = calculate_and_format_time_until(bus_info.get(KEY_DEPARTURE_TIME, ""), bus_info.get(KEY_STATUS_TEXT, ""), current_dt_tokyo)
             bus_info.update({KEY_TIME_UNTIL: time_until_str, KEY_IS_URGENT: is_urgent, KEY_SECONDS_UNTIL_DEPARTURE: seconds_until, KEY_DEPARTURE_TIME_ISO: departure_dt.isoformat() if departure_dt else None, KEY_DURATION: bus_info_original.get(KEY_DURATION, "不明"), KEY_DELAY_INFO: bus_info_original.get(KEY_DELAY_INFO)})
             dest_name = bus_info.get(KEY_DESTINATION_NAME, ""); is_ishikura_stop_only = False
-            if "石倉" == dest_name.strip() and "産業能率大学" not in dest_name : is_ishikura_stop_only = True
-            elif "産業能率大学" in dest_name: is_ishikura_stop_only = False
-            elif "大山ケーブル" in dest_name : is_ishikura_stop_only = False
+            # 石倉止まりの判定を厳密化: 行き先名が「石倉」であり、かつ「産業能率大学」や「大山ケーブル」など他の主要な終点名を含まない場合
+            if dest_name:
+                if dest_name.strip() == "石倉":
+                    is_ishikura_stop_only = True
+                elif "産業能率大学" in dest_name or "大山ケーブル" in dest_name: # これらの行き先は石倉止まりではない
+                    is_ishikura_stop_only = False
+                elif "石倉" in dest_name: # "石倉"を含むが上記以外の場合 (例: 石倉経由XX) は止まりではないと判断
+                    is_ishikura_stop_only = False
+
+
             bus_info[KEY_IS_ISHIKURA_STOP_ONLY] = is_ishikura_stop_only
             processed_buses_for_display_group.append(bus_info)
         all_routes_bus_data[route_id] = {"from_stop_name": route_config["from_stop_name_short"], "to_stop_name": route_config["to_stop_name_short"], "from_stop_name_full": route_config["from_stop_name_full"], "to_stop_name_full": route_config.get("to_stop_name_full", route_config["to_stop_name_short"]), "buses_to_display": processed_buses_for_display_group[:MAX_BUSES_TO_FETCH], "bus_error_message": "、".join(combined_errors_for_group) if combined_errors_for_group else None, "bus_last_updated_str": datetime.datetime.fromtimestamp(latest_bus_update_time_for_group, TOKYO_TZ).strftime('%H:%M:%S') if latest_bus_update_time_for_group > 0 else "N/A"}
