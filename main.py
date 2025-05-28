@@ -234,7 +234,7 @@ def calculate_and_format_time_until(departure_str, status_text_raw, current_dt_t
                      time_until_str = "発車済みの恐れあり"
             else:
                 delta = bus_dt_today_tokyo - current_dt_tokyo; total_seconds = int(delta.total_seconds()); seconds_until = total_seconds
-                if total_seconds <= 180: is_urgent = True; time_until_str = f"あと{total_seconds // 60}分" if total_seconds >=60 else f"あと{total_seconds}秒"
+                if total_seconds <= 180: is_urgent = True; time_until_str = f"あと{total_seconds // 60}分" if total_seconds >=60 else f"あと{total_seconds}秒" # これは初期表示用
                 else: time_until_str = f"あと{total_seconds // 60}分"
                 if total_seconds <=15: is_urgent = True
         except ValueError: time_until_str = f"時刻形式エラー ({departure_str})"
@@ -303,16 +303,10 @@ def api_data():
             time_until_str, is_urgent, seconds_until, departure_dt = calculate_and_format_time_until(bus_info.get(KEY_DEPARTURE_TIME, ""), bus_info.get(KEY_STATUS_TEXT, ""), current_dt_tokyo)
             bus_info.update({KEY_TIME_UNTIL: time_until_str, KEY_IS_URGENT: is_urgent, KEY_SECONDS_UNTIL_DEPARTURE: seconds_until, KEY_DEPARTURE_TIME_ISO: departure_dt.isoformat() if departure_dt else None, KEY_DURATION: bus_info_original.get(KEY_DURATION, "不明"), KEY_DELAY_INFO: bus_info_original.get(KEY_DELAY_INFO)})
             dest_name = bus_info.get(KEY_DESTINATION_NAME, ""); is_ishikura_stop_only = False
-            # 石倉止まりの判定を厳密化: 行き先名が「石倉」であり、かつ「産業能率大学」や「大山ケーブル」など他の主要な終点名を含まない場合
             if dest_name:
-                if dest_name.strip() == "石倉":
-                    is_ishikura_stop_only = True
-                elif "産業能率大学" in dest_name or "大山ケーブル" in dest_name: # これらの行き先は石倉止まりではない
-                    is_ishikura_stop_only = False
-                elif "石倉" in dest_name: # "石倉"を含むが上記以外の場合 (例: 石倉経由XX) は止まりではないと判断
-                    is_ishikura_stop_only = False
-
-
+                if dest_name.strip() == "石倉": is_ishikura_stop_only = True
+                elif "産業能率大学" in dest_name or "大山ケーブル" in dest_name : is_ishikura_stop_only = False
+                elif "石倉" in dest_name : is_ishikura_stop_only = False # 石倉経由XXは止まりではない
             bus_info[KEY_IS_ISHIKURA_STOP_ONLY] = is_ishikura_stop_only
             processed_buses_for_display_group.append(bus_info)
         all_routes_bus_data[route_id] = {"from_stop_name": route_config["from_stop_name_short"], "to_stop_name": route_config["to_stop_name_short"], "from_stop_name_full": route_config["from_stop_name_full"], "to_stop_name_full": route_config.get("to_stop_name_full", route_config["to_stop_name_short"]), "buses_to_display": processed_buses_for_display_group[:MAX_BUSES_TO_FETCH], "bus_error_message": "、".join(combined_errors_for_group) if combined_errors_for_group else None, "bus_last_updated_str": datetime.datetime.fromtimestamp(latest_bus_update_time_for_group, TOKYO_TZ).strftime('%H:%M:%S') if latest_bus_update_time_for_group > 0 else "N/A"}
