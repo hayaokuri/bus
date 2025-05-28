@@ -445,3 +445,38 @@ body.dark-mode .origin-indicator {
     /* 石倉発の場合、発車時刻のフォント色を変えるなどしても良い */
     /* color: var(--primary-color); */ /* 例 */
 }
+
+.bus-item.departed-bus {
+    opacity: 0.6;
+    background-color: var(--text-color-subtle); /* より明確なグレーアウト */
+    border-left-color: var(--text-color-subtle) !important; /* 他のスタイルを上書き */
+}
+body.dark-mode .bus-item.departed-bus {
+    opacity: 0.5;
+    background-color: #333;
+    border-left-color: #555 !important;
+}
+.bus-item.departed-bus .departure-time,
+.bus-item.departed-bus .status-badge,
+.bus-item.departed-bus .realtime-countdown,
+.bus-item.departed-bus .destination-note,
+.bus-item.departed-bus .origin-indicator,
+.bus-item.departed-bus .via-info,
+.bus-item.departed-bus .duration-info {
+    color: #999 !important; /* グレーアウト時の文字色 */
+}
+body.dark-mode .bus-item.departed-bus .departure-time,
+body.dark-mode .bus-item.departed-bus .status-badge,
+body.dark-mode .bus-item.departed-bus .realtime-countdown,
+body.dark-mode .bus-item.departed_bus .destination-note,
+body.dark-mode .bus-item.departed_bus .origin-indicator,
+body.dark-mode .bus-item.departed_bus .via-info,
+body.dark-mode .bus-item.departed_bus .duration-info {
+    color: #777 !important;
+}
+
+.duration-info {
+    font-size: 0.85em;
+    color: var(--text-color-light);
+    margin-left: 10px;
+}
