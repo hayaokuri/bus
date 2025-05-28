@@ -216,7 +216,6 @@ def calculate_and_format_time_until(departure_str, status_text_raw, current_dt_t
             if bus_dt_check < current_dt_tokyo and (current_dt_tokyo.hour >= 20 and bus_hour_check <= 5): bus_dt_check += datetime.timedelta(days=1)
             if bus_dt_check < current_dt_tokyo and "まもなく発車します" in departure_str:
                 departure_str = departure_str.replace("まもなく発車します", f"{match_time_for_check.group(1)}発 (発車済みの恐れあり)")
-                # status_text_raw = status_text_raw.replace("まもなく発車します", f"{match_time_for_check.group(1)}発 (発車済みの恐れあり)") # status_text_rawも更新するなら
                 logging.info(f"発車時刻後の「まもなく」を修正: {departure_str}")
         except Exception as e: logging.warning(f"発車時刻後「まもなく」修正中のエラー: {e}")
     if "まもなく発車します" in departure_str: time_until_str = "まもなく"; is_urgent = True; seconds_until = 10
