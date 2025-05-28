@@ -51,13 +51,14 @@ if (userPreferredTheme) {
     document.body.classList.add(osPreferredTheme);
 }
 
-if (themeToggleButton) {
+if (themeToggleButton) { // ボタンが存在する場合のみリスナーを追加
     themeToggleButton.addEventListener('click', () => {
         document.body.classList.toggle('dark-mode');
         let theme = document.body.classList.contains('dark-mode') ? 'dark-mode' : '';
         localStorage.setItem('theme', theme);
     });
 }
+
 
 let currentDirectionGroup = localStorage.getItem('busDirectionGroup') || 'to_station_area';
 const directionSwitchButton = document.getElementById('direction-switch-button');
@@ -76,7 +77,7 @@ function updateDirectionGroupDisplay() {
 }
 updateDirectionGroupDisplay();
 
-if (directionSwitchButton) {
+if (directionSwitchButton) { // ボタンが存在する場合のみリスナーを追加
     directionSwitchButton.addEventListener('click', () => {
         currentDirectionGroup = (currentDirectionGroup === 'to_station_area') ? 'to_university_area' : 'to_station_area';
         localStorage.setItem('busDirectionGroup', currentDirectionGroup);
@@ -84,6 +85,7 @@ if (directionSwitchButton) {
         fetchAndUpdateData();
     });
 }
+
 
 function getWeatherIconClass(conditionCode) {
     if (!conditionCode) return 'fa-question-circle';
@@ -127,32 +129,38 @@ function updateAllBusCountdowns() {
         if (activeRoutesData.hasOwnProperty(displayGroupId)) {
             activeRoutesData[displayGroupId].forEach((bus, index) => {
                 const countdownElement = document.getElementById(`bus-countdown-${displayGroupId}-${index}`);
-                if (countdownElement) {
+                const busItemElement = document.getElementById(`bus-item-${displayGroupId}-${index}`);
+
+                if (countdownElement && busItemElement) {
                     if (bus.seconds_until_departure > -1) {
                         let newSecondsUntil;
                         if (bus.departure_time_iso) {
                             const departureTime = new Date(bus.departure_time_iso);
-                            newSecondsUntil = Math.max(0, Math.floor((departureTime.getTime() - currentTime.getTime()) / 1000));
+                            newSecondsUntil = Math.max(-1, Math.floor((departureTime.getTime() - currentTime.getTime()) / 1000));
                         } else {
-                            newSecondsUntil = Math.max(0, bus.display_seconds - 1);
+                            newSecondsUntil = Math.max(-1, bus.display_seconds - 1);
                         }
                         bus.display_seconds = newSecondsUntil;
                         countdownElement.textContent = formatSecondsToCountdown(newSecondsUntil);
 
-                        const busItemElement = document.getElementById(`bus-item-${displayGroupId}-${index}`);
-                        if (busItemElement) {
+                        if (newSecondsUntil < 0) {
+                            busItemElement.classList.add('departed-bus');
+                            busItemElement.classList.remove('urgent');
+                        } else {
+                            busItemElement.classList.remove('departed-bus');
                             const shouldBeUrgent = (newSecondsUntil > 0 && newSecondsUntil <= 180) || bus.is_urgent_from_server;
-                            if (shouldBeUrgent) {
-                                busItemElement.classList.add('urgent');
-                            } else {
-                                busItemElement.classList.remove('urgent');
-                            }
-                            if (newSecondsUntil === 0 && formatSecondsToCountdown(newSecondsUntil) !== "") {
-                                countdownElement.textContent = "発車時刻です";
-                            }
+                            if (shouldBeUrgent) busItemElement.classList.add('urgent');
+                            else busItemElement.classList.remove('urgent');
+                        }
+                        if (newSecondsUntil === 0 && formatSecondsToCountdown(newSecondsUntil) !== "") {
+                            countdownElement.textContent = "発車時刻です";
                         }
                     } else if (bus.time_until_departure) {
                         countdownElement.textContent = bus.time_until_departure;
+                        if (bus.time_until_departure === "出発済み" || (bus.time_until_departure && bus.time_until_departure.includes("発車済みの恐れあり"))) {
+                            busItemElement.classList.add('departed-bus');
+                            busItemElement.classList.remove('urgent');
+                        }
                     }
                 }
             });
@@ -202,10 +210,9 @@ async function fetchAndUpdateData() {
         } else {
             weatherHtml = '<p class="error-message"><i class="fas fa-exclamation-triangle"></i> 天気情報取得エラー</p>';
         }
-        if (weatherInfoArea) { // 要素が存在するか確認
+        if (weatherInfoArea) {
             weatherInfoArea.innerHTML = weatherHtml;
         }
-
 
         const multiRouteBusInfoContainer = document.getElementById('multi-route-bus-info-container');
         if (!multiRouteBusInfoContainer) {
@@ -242,30 +249,34 @@ async function fetchAndUpdateData() {
                                 via_info: bus.via_info,
                                 is_ishikura_stop_only: bus.is_ishikura_stop_only,
                                 origin_stop_name_short: bus.origin_stop_name_short,
-                                vehicle_no: bus.vehicle_no
+                                vehicle_no: bus.vehicle_no,
+                                duration_text: bus.duration_text
                             });
 
-                            let departureTimeMain = bus.departure_time.replace(/\(予定通り\)|\(予定\)|\(遅延可能性あり\)|まもなく発車します|出発しました|通過しました/gi, '').trim();
+                            let departureTimeMain = bus.departure_time ? bus.departure_time.replace(/\(予定通り\)|\(予定\)|\(遅延可能性あり\)|まもなく発車します|出発しました|通過しました|発車済みの恐れあり/gi, '').trim() : "時刻不明";
                             let statusLabel = '';
                             let statusType = '';
                             let isTrulyUrgent = bus.is_urgent;
 
-                            if (isTrulyUrgent && (bus.seconds_until_departure <= 15 || (bus.departure_time && bus.departure_time.toLowerCase().includes("まもなく")))) {
-                                statusLabel = 'まもなく発車'; statusType = 'soon';
-                            } else if (bus.departure_time && (bus.departure_time.includes("出発しました") || bus.departure_time.includes("通過しました")) || (bus.time_until_departure && bus.time_until_departure === "出発済み")) {
+                            if (bus.time_until_departure === "出発済み" || (bus.departure_time && (bus.departure_time.includes("出発しました") || bus.departure_time.includes("通過しました") || bus.departure_time.includes("発車済みの恐れあり")))) {
                                 statusLabel = '出発済み'; statusType = 'departed'; isTrulyUrgent = false;
+                            } else if (isTrulyUrgent && (bus.seconds_until_departure <= 15 || (bus.departure_time && bus.departure_time.toLowerCase().includes("まもなく")))) {
+                                statusLabel = 'まもなく発車'; statusType = 'soon';
                             } else if (bus.departure_time && bus.departure_time.includes("(予定通り)")) {
                                 statusLabel = '予定通り'; statusType = 'on-time';
-                            } else if (bus.departure_time && bus.departure_time.includes("(遅延可能性あり)")) {
-                                statusLabel = '遅延可能性あり'; statusType = 'delayed-possible'; isTrulyUrgent = false;
+                            } else if (bus.departure_time && (bus.departure_time.includes("(遅延可能性あり)") || bus.departure_time.includes("分遅れ"))) {
+                                statusLabel = '遅延情報あり'; statusType = 'delayed-possible'; isTrulyUrgent = false;
                             } else if (bus.departure_time && bus.departure_time.includes("(予定)")) {
                                 statusLabel = '予定'; statusType = 'scheduled';
                             }
-                            if(bus.is_urgent && !statusLabel.includes("まもなく") && statusType !== 'departed'){
+                            
+                            if(bus.is_urgent && statusType !== 'soon' && statusType !== 'departed'){
                                  if (bus.seconds_until_departure > 0 && bus.seconds_until_departure <= 180) {
                                     isTrulyUrgent = true;
                                     if (!statusLabel){ statusLabel = '接近中'; statusType = 'soon';}
-                                 } else { isTrulyUrgent = false; }
+                                 } else if (bus.seconds_until_departure > 180) {
+                                    isTrulyUrgent = false;
+                                 }
                             }
                             
                             let itemAdditionalClass = '';
@@ -282,9 +293,10 @@ async function fetchAndUpdateData() {
                             }
                             const busItemId = `bus-item-${displayGroupId}-${index}`;
                             const busCountdownId = `bus-countdown-${displayGroupId}-${index}`;
+                            const durationDisplay = bus.duration_text && bus.duration_text !== "不明" ? `<span class="duration-info">(所要 ${bus.duration_text})</span>` : "";
 
                             routeHtml += `
-                                <li class="bus-item ${isTrulyUrgent ? 'urgent' : ''}${itemAdditionalClass} status-${statusType}" id="${busItemId}">
+                                <li class="bus-item ${isTrulyUrgent ? 'urgent' : ''}${itemAdditionalClass} ${statusType === 'departed' ? 'departed-bus' : ''} status-${statusType}" id="${busItemId}">
                                     <div class="bus-item-main">
                                         <span class="bus-number">${isTrulyUrgent && statusType === 'soon' ? '<i class="fas fa-exclamation-triangle"></i> ' : ''}${index + 1}.</span>
                                         <span class="departure-time">${originIndicator}${departureTimeMain}</span>
@@ -296,6 +308,7 @@ async function fetchAndUpdateData() {
                                     </div>
                                     <div class="bus-item-sub">
                                         ${bus.via_info && bus.via_info !== "不明" ? `<span class="via-info">経由: ${bus.via_info}</span>` : ""}
+                                        ${durationDisplay}
                                         ${(bus.status_text && bus.status_text.includes("予定通り発車します") && statusType !== 'on-time' && statusType !== 'departed') ? `<span class="details status-on-time-detail"><i class="fas fa-check-circle"></i> 予定通り発車します</span>` : ''}
                                     </div>
                                 </li>`;
@@ -336,10 +349,9 @@ async function fetchAndUpdateData() {
     }
 }
 
-// DATA_UPDATE_INTERVAL はHTML側で<script>タグ経由でグローバル変数として定義される
-const effectiveDataUpdateInterval = typeof DATA_UPDATE_INTERVAL !== 'undefined' ? DATA_UPDATE_INTERVAL : 10000; // デフォルト10秒
+const effectiveDataUpdateInterval = typeof DATA_UPDATE_INTERVAL !== 'undefined' ? DATA_UPDATE_INTERVAL : 10000;
 
-fetchAndUpdateData(); // 初回実行
+fetchAndUpdateData();
 if (effectiveDataUpdateInterval > 0) {
     setInterval(fetchAndUpdateData, effectiveDataUpdateInterval);
     const nextFetchInfoEl = document.getElementById('next-fetch-info-debug');
