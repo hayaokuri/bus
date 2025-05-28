@@ -306,8 +306,9 @@ def api_data():
             if dest_name:
                 if dest_name.strip() == "石倉": is_ishikura_stop_only = True
                 elif "産業能率大学" in dest_name or "大山ケーブル" in dest_name : is_ishikura_stop_only = False
-                elif "石倉" in dest_name : is_ishikura_stop_only = False # 石倉経由XXは止まりではない
+                elif "石倉" in dest_name : is_ishikura_stop_only = False
             bus_info[KEY_IS_ISHIKURA_STOP_ONLY] = is_ishikura_stop_only
+            logging.info(f"駅発バス情報: 行先='{dest_name}', 石倉止まり判定='{is_ishikura_stop_only}', 系統='{bus_info.get(KEY_SYSTEM_ROUTE_NAME)}', 発時刻='{bus_info.get(KEY_DEPARTURE_TIME)}'")
             processed_buses_for_display_group.append(bus_info)
         all_routes_bus_data[route_id] = {"from_stop_name": route_config["from_stop_name_short"], "to_stop_name": route_config["to_stop_name_short"], "from_stop_name_full": route_config["from_stop_name_full"], "to_stop_name_full": route_config.get("to_stop_name_full", route_config["to_stop_name_short"]), "buses_to_display": processed_buses_for_display_group[:MAX_BUSES_TO_FETCH], "bus_error_message": "、".join(combined_errors_for_group) if combined_errors_for_group else None, "bus_last_updated_str": datetime.datetime.fromtimestamp(latest_bus_update_time_for_group, TOKYO_TZ).strftime('%H:%M:%S') if latest_bus_update_time_for_group > 0 else "N/A"}
     weather_data_to_display = {}
