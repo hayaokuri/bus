@@ -1,4 +1,5 @@
 // static/js/main.js
+// ... (前回提示した full static/js/main.js の内容をここに記述) ...
 function updateCurrentTime() {
     const timeDisplay = document.getElementById('current-time-display');
     if (timeDisplay) {
@@ -66,17 +67,14 @@ function formatSecondsToCountdown(seconds, originStopNameShort) {
     const isIshikuraOrigin = originStopNameShort === '石倉';
     const detailCountdownThreshold = isIshikuraOrigin ? 600 : 180;
 
-    // 15秒以内の「まもなく」表示はバッジに任せるので、カウントダウンは秒数を表示し続ける
-    // if (seconds <= 15) return ""; // この行を削除またはコメントアウト
-
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
 
-    if (seconds < 60) {
+    if (seconds < 60) { // 1分未満
         return `あと${remainingSeconds}秒`;
-    } else if (seconds <= detailCountdownThreshold) {
+    } else if (seconds <= detailCountdownThreshold) { // 各出発地の詳細カウントダウン閾値以内
         return `あと${minutes}分${remainingSeconds}秒`;
-    } else {
+    } else { // 詳細カウントダウン閾値より大きい場合
         const minutesRoundedUp = Math.ceil(seconds / 60);
         return `あと${minutesRoundedUp}分`;
     }
@@ -117,12 +115,12 @@ function updateAllBusCountdowns() {
                             if (shouldBeUrgent) busItemElement.classList.add('urgent');
                             else busItemElement.classList.remove('urgent');
                         }
-                    } else if (bus.time_until_departure) { // 初期ロード時など、サーバーからの文字列を使う場合
-                        countdownElement.textContent = bus.time_until_departure; // これは初期文字列なので、カウントダウンとは異なる
+                    } else if (bus.time_until_departure) {
+                        countdownElement.textContent = bus.time_until_departure;
                         if (bus.time_until_departure === "出発済み" || (bus.time_until_departure && bus.time_until_departure.includes("発車済みの恐れあり"))) {
                             busItemElement.classList.add('departed-bus');
                             busItemElement.classList.remove('urgent');
-                            countdownElement.textContent = ""; // 出発済みならカウントダウン表示は消す
+                            countdownElement.textContent = "";
                         }
                     }
                 }
@@ -139,10 +137,22 @@ async function fetchAndUpdateData() {
 
         const statusIndicator = document.getElementById('server-status-indicator');
         const statusText = document.getElementById('server-status-text');
-        if (statusIndicator && statusText) { /* ... */ }
+        if (statusIndicator && statusText) {
+             if (data.system_status) {
+                if (data.system_status.healthy) { statusIndicator.className = 'indicator green'; statusText.textContent = '作動中'; }
+                else if (data.system_status.warning) { statusIndicator.className = 'indicator yellow'; statusText.textContent = '一部注意あり'; }
+                else { statusIndicator.className = 'indicator red'; statusText.textContent = '停止またはエラー'; }
+            } else { statusIndicator.className = 'indicator'; statusText.textContent = '状態不明'; }
+        }
         const weatherInfoArea = document.getElementById('weather-info-area');
         let weatherHtml = '';
-        if (data.weather_data) { /* ... */ } else { /* ... */ }
+        if (data.weather_data) {
+            if (data.weather_data.error_message) { weatherHtml = `<p class="error-message"><i class="fas fa-exclamation-triangle"></i> 天気情報: ${data.weather_data.error_message}</p>`; }
+            else if (data.weather_data.condition || data.weather_data.description) {
+                const iconClass = getWeatherIconClass(data.weather_data.condition_code);
+                weatherHtml = `<p><strong><i class="fas ${iconClass}"></i> 伊勢原の天気:</strong> ${data.weather_data.description || data.weather_data.condition}${data.weather_data.temp_c !== null ? ` (${data.weather_data.temp_c.toFixed(1)}℃)` : ''}${data.weather_data.is_rain ? ` <span class="urgent-text"><i class="fas fa-umbrella"></i> 傘を忘れずに！</span>` : ''}</p>`;
+            } else { weatherHtml = '<p><i class="fas fa-question-circle"></i> 天気情報なし</p>'; }
+        } else { weatherHtml = '<p class="error-message"><i class="fas fa-exclamation-triangle"></i> 天気情報取得エラー</p>'; }
         if (weatherInfoArea) { weatherInfoArea.innerHTML = weatherHtml; }
 
         const multiRouteBusInfoContainer = document.getElementById('multi-route-bus-info-container');
