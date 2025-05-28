@@ -480,3 +480,44 @@ body.dark-mode .bus-item.departed_bus .duration-info {
     color: var(--text-color-light);
     margin-left: 10px;
 }
+/* 石倉発の表示改善 (アイコン + テキストチップ) */
+.origin-chip {
+    display: inline-flex; /* アイコンとテキストを横並びにするため */
+    align-items: center; /* アイコンとテキストを縦方向中央揃え */
+    background-color: var(--primary-color); /* テーマカラーの薄い版など */
+    color: var(--button-text-color); /* 白など、背景色に合わせて調整 */
+    padding: 2px 6px;
+    border-radius: 10px; /* 角丸 */
+    font-size: 0.8em; /* 少し小さめ */
+    margin-right: 8px;
+    line-height: 1; /* アイコンとの縦位置調整 */
+}
+.origin-chip .fas { /* アイコンのスタイル */
+    margin-right: 4px;
+    font-size: 0.9em; /* アイコンサイズ調整 */
+}
+body.dark-mode .origin-chip {
+    background-color: var(--primary-color-darker);
+    color: var(--text-color);
+}
+
+/* 石倉発バスアイテムの背景色 (オプション) */
+.bus-item.ishikura-origin-bus {
+    /* background-color: #e6f9ff; */ /* 強調しすぎないようにコメントアウト、または他の方法で区別 */
+    /* border-left: 4px solid var(--primary-color); */ /* 左ボーダーなどで区別するのも良い */
+}
+
+/* 出発済みの場合、リアルタイムカウントダウンは非表示 (JSで中身を空にするのでCSSでの非表示は不要かも) */
+.bus-item.departed-bus .realtime-countdown {
+    /* display: none; */ /* または visibility: hidden; */
+}
+
+/* 遅延情報バッジのスタイル (前回から変更なしでも良いが、確認用) */
+.status-badge.status-type-delayed-explicit {
+    background-color: var(--indicator-yellow-bg);
+    color: #333;
+    /* width: auto; white-space: normal; */ /* 必要なら複数行対応 */
+}
+body.dark-mode .status-badge.status-type-delayed-explicit {
+    color: #111;
+}
