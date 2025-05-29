@@ -72,7 +72,7 @@ body.dark-mode {
     --info-message-bg: #1a3a5c; --info-message-border: #2a5288; --info-message-text: #82b1ff;
     --error-message-bg: #4a1c1c; --error-message-border: #803030; --error-message-text: #ff8a80;
     --button-bg: #4dabf7; --button-text-color: #121212; --button-hover-bg: #1a7fdb; --footer-border-color: #333;
-    --departed-bus-opacity: 0.5; --departed-bus-bg: #2a2a2a; --departed-bus-text: #777;
+    --departed-bus-opacity: 0.55; --departed-bus-bg: #333333; --departed-bus-text: #888888;
 
     --ishikura-stop-bg-color: #4d4422;
     --oyama-via-ishikura-bg-color: #2f442f;
