@@ -63,22 +63,12 @@ function formatSecondsToCountdown(seconds, originStopNameShort) {
     if (seconds < 0) return ""; 
     if (seconds === 0) return "発車時刻";
     const isIshikuraOrigin = originStopNameShort === '石倉';
-    const detailCountdownThreshold = isIshikuraOrigin ? 600 : 180; // 石倉発10分、他3分
-    
-    // 15秒以内はバッジに任せる (表示しない)
-    if (seconds <= 15) return ""; 
-
+    const detailCountdownThreshold = isIshikuraOrigin ? 600 : 180;
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-
-    if (seconds < 60) { // 1分未満 (かつ15秒より大きい)
-        return `あと${remainingSeconds}秒`;
-    } else if (seconds <= detailCountdownThreshold) { // 各出発地の詳細カウントダウン閾値以内
-        return `あと${minutes}分${remainingSeconds}秒`;
-    } else { // 詳細カウントダウン閾値より大きい場合
-        const minutesRoundedUp = Math.ceil(seconds / 60);
-        return `あと${minutesRoundedUp}分`;
-    }
+    if (seconds < 60) { return `あと${remainingSeconds}秒`; }
+    else if (seconds <= detailCountdownThreshold) { return `あと${minutes}分${remainingSeconds}秒`; }
+    else { const minutesRoundedUp = Math.ceil(seconds / 60); return `あと${minutesRoundedUp}分`; }
 }
 
 function updateAllBusCountdowns() {
@@ -89,39 +79,29 @@ function updateAllBusCountdowns() {
                 const countdownElement = document.getElementById(`bus-countdown-${displayGroupId}-${index}`);
                 const busItemElement = document.getElementById(`bus-item-${displayGroupId}-${index}`);
                 const statusBadge = busItemElement ? busItemElement.querySelector('.status-badge') : null;
-
                 if (countdownElement && busItemElement) {
-                    if (bus.seconds_until_departure > -1 || bus.display_seconds > -1) { // display_secondsも見る
+                    if (bus.seconds_until_departure > -1 || bus.display_seconds > -1) {
                         let newSecondsUntil;
                         if (bus.departure_time_iso) {
                             const departureTime = new Date(bus.departure_time_iso);
                             newSecondsUntil = Math.max(-1, Math.floor((departureTime.getTime() - currentTime.getTime()) / 1000));
                         } else { newSecondsUntil = Math.max(-1, bus.display_seconds - 1); }
                         bus.display_seconds = newSecondsUntil;
-                        
                         const countdownText = formatSecondsToCountdown(newSecondsUntil, bus.origin_stop_name_short);
                         countdownElement.textContent = countdownText;
-
-                        if (newSecondsUntil < 0) { // 出発済みになった場合
-                            busItemElement.classList.add('departed-bus');
-                            busItemElement.classList.remove('urgent');
-                            if(statusBadge && statusBadge.textContent !== '出発済み') {
-                                statusBadge.textContent = '出発済み';
-                                statusBadge.className = 'status-badge status-type-departed';
-                            }
-                            countdownElement.textContent = ""; // カウントダウン表示は完全に消す
+                        if (newSecondsUntil < 0) {
+                            busItemElement.classList.add('departed-bus'); busItemElement.classList.remove('urgent');
+                            if(statusBadge && statusBadge.textContent !== '出発済み') { statusBadge.textContent = '出発済み'; statusBadge.className = 'status-badge status-type-departed';}
+                            countdownElement.textContent = "";
                         } else {
                             busItemElement.classList.remove('departed-bus');
-                            const shouldBeUrgent = (newSecondsUntil > 0 && newSecondsUntil <= 180) || bus.is_urgent_from_server; // 緊急閾値は一律3分
-                            if (shouldBeUrgent) busItemElement.classList.add('urgent');
-                            else busItemElement.classList.remove('urgent');
+                            const shouldBeUrgent = (newSecondsUntil > 0 && newSecondsUntil <= 180) || bus.is_urgent_from_server;
+                            if (shouldBeUrgent) busItemElement.classList.add('urgent'); else busItemElement.classList.remove('urgent');
                         }
-                    } else if (bus.time_until_departure) { // 初期文字列表示 (サーバーからの情報)
-                        countdownElement.textContent = bus.time_until_departure; // これはリアルタイム更新ではない
+                    } else if (bus.time_until_departure) {
+                        countdownElement.textContent = bus.time_until_departure;
                         if (bus.time_until_departure === "出発済み" || (bus.time_until_departure && bus.time_until_departure.includes("発車済みの恐れあり"))) {
-                            busItemElement.classList.add('departed-bus');
-                            busItemElement.classList.remove('urgent');
-                            countdownElement.textContent = ""; // カウントダウン表示は消す
+                            busItemElement.classList.add('departed-bus'); busItemElement.classList.remove('urgent'); countdownElement.textContent = "";
                         }
                     }
                 }
@@ -135,7 +115,6 @@ async function fetchAndUpdateData() {
         const response = await fetch(`/api/data?direction_group=${currentDirectionGroup}`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
-
         const statusIndicator = document.getElementById('server-status-indicator');
         const statusText = document.getElementById('server-status-text');
         if (statusIndicator && statusText) {
@@ -183,7 +162,6 @@ async function fetchAndUpdateData() {
                             });
                             let departureTimeMain = bus.departure_time ? bus.departure_time.replace(/\(予定通り\)|\(予定\)|\(遅延可能性あり\)|まもなく発車します|出発しました|通過しました|発車済みの恐れあり|\(\s*\d+分遅れ\s*\)/gi, '').trim() : "時刻不明";
                             let statusLabel = ''; let statusType = ''; let isTrulyUrgent = bus.is_urgent; let isDeparted = false;
-
                             if (bus.delay_info) { statusLabel = bus.delay_info; statusType = 'delayed-explicit'; isTrulyUrgent = false;
                             } else if (bus.time_until_departure === "出発済み" || (bus.departure_time && (bus.departure_time.includes("出発しました") || bus.departure_time.includes("通過しました") || bus.departure_time.includes("発車済みの恐れあり")))) {
                                 statusLabel = '出発済み'; statusType = 'departed'; isTrulyUrgent = false; isDeparted = true;
@@ -196,36 +174,39 @@ async function fetchAndUpdateData() {
                                  if (bus.seconds_until_departure > 0 && bus.seconds_until_departure <= 180) { isTrulyUrgent = true; if (!statusLabel){ statusLabel = '接近中'; statusType = 'soon';} }
                                  else if (bus.seconds_until_departure > 180) { isTrulyUrgent = false; }
                             }
-                            let itemAdditionalClass = ''; let itemDestinationNote = ''; let originIndicatorHtml = '';
+                            let itemAdditionalClass = '';
+                            let itemDestinationNote = ''; // この変数は使用しない方針
+                            let originIndicatorHtml = '';
+                            let ishikuraTargetIndicatorHtml = '';
+
                             if (currentDirectionGroup === 'to_station_area' && bus.origin_stop_name_short === '石倉') {
                                 itemAdditionalClass += ' ishikura-origin-bus';
                                 originIndicatorHtml = '<span class="origin-chip"><i class="fas fa-map-pin"></i> 石倉</span>';
                             }
                             if (currentDirectionGroup === 'to_university_area') {
-                                if (bus.is_ishikura_stop_only) {
-                                    itemAdditionalClass += ' ishikura-stop-bus'; // 石倉止まり用のスタイルクラス
+                                if (bus.is_ishikura_stop_only || bus.is_oyama_for_ishikura) {
                                     ishikuraTargetIndicatorHtml = '<span class="target-chip ishikura-chip"><i class="fas fa-map-marker-alt"></i> 石倉</span>';
-                                    // itemDestinationNote = ' (石倉止まり)'; // 注記は削除
-                                } else if (bus.is_oyama_for_ishikura) { // 大山ケーブル行き（石倉で下車可）
-                                    itemAdditionalClass += ' oyama-via-ishikura-bus';
-                                    ishikuraTargetIndicatorHtml = '<span class="target-chip ishikura-chip"><i class="fas fa-map-marker-alt"></i> 石倉</span>';
-                                    // itemDestinationNote = ` (石倉経由 ${bus.destination_name}行き)`; // 注記は削除
+                                    if (bus.is_ishikura_stop_only) {
+                                        itemAdditionalClass += ' ishikura-stop-bus';
+                                    } else if (bus.is_oyama_for_ishikura) {
+                                        itemAdditionalClass += ' oyama-via-ishikura-bus';
+                                    }
                                 }
                             }
                             const busItemId = `bus-item-${displayGroupId}-${index}`; const busCountdownId = `bus-countdown-${displayGroupId}-${index}`;
                             const durationDisplay = bus.duration_text && bus.duration_text !== "不明" ? `<span class="duration-info">(所要 ${bus.duration_text})</span>` : "";
                             const countdownDisplayHtml = isDeparted ? '' : `<span class="realtime-countdown" id="${busCountdownId}">${formatSecondsToCountdown(bus.seconds_until_departure, bus.origin_stop_name_short)}</span>`;
-                            const mainDestinationDisplayHtml = (bus.is_ishikura_stop_only || bus.is_oyama_for_ishikura) ? '' : `<span class="destination-name-display"> ${bus.destination_name || ''}</span>`;
+                            const mainDestinationDisplayHtml = (ishikuraTargetIndicatorHtml !== '') ? '' : `<span class="destination-name-display"> ${bus.destination_name || ''}</span>`;
 
                             routeHtml += `
                                 <li class="bus-item ${isTrulyUrgent ? 'urgent' : ''}${itemAdditionalClass} ${isDeparted ? 'departed-bus' : ''} status-${statusType}" id="${busItemId}">
                                     <div class="bus-item-main">
                                         <span class="bus-number">${isTrulyUrgent && statusType === 'soon' && !isDeparted ? '<i class="fas fa-exclamation-triangle"></i> ' : ''}${index + 1}.</span>
                                         ${originIndicatorHtml}
-                                        ${currentDirectionGroup === 'to_university_area' ? ishikuraTargetIndicatorHtml : ''} {/* 大学方面の場合のみ石倉対象チップを表示 */}
+                                        ${ishikuraTargetIndicatorHtml} {/* 石倉チップをここに表示 */}
                                         <span class="departure-time">${departureTimeMain}</span>
                                         ${mainDestinationDisplayHtml}
-                                        <span class="destination-note">${itemDestinationNote}</span> {/* これは空になるはず */}
+                                        {/* <span class="destination-note">${itemDestinationNote}</span>  コメントアウトまたは削除 */}
                                         ${statusLabel ? `<span class="status-badge status-type-${statusType}">${statusLabel}</span>` : ''}
                                         ${countdownDisplayHtml}
                                     </div>
