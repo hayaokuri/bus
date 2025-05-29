@@ -30,7 +30,7 @@ ROUTE_DEFINITIONS = {
     },
     "station_to_university_ishikura": {
         "id": "station_to_university_ishikura", "from_stop_no": "18100",
-        "to_stop_no_sanno": "18137", "to_stop_no_ishikura": "18124",
+        "to_stop_no_sanno": "18137", "to_stop_no_ishikura": "18124", # 神奈中への問い合わせは石倉を指定
         "from_stop_name_short": "駅", "to_stop_name_short": "大学方面",
         "from_stop_name_full": "伊勢原駅北口", "to_stop_name_full": "大学・石倉方面",
         "group": "to_university_area"
@@ -53,7 +53,8 @@ KEY_SECONDS_UNTIL_DEPARTURE = "seconds_until_departure"
 KEY_SYSTEM_ROUTE_NAME = "system_route_name"
 KEY_DESTINATION_NAME = "destination_name"
 KEY_VIA_INFO = "via_info"
-KEY_IS_ISHIKURA_STOP_ONLY = "is_ishikura_stop_only"
+KEY_IS_ISHIKURA_STOP_ONLY = "is_ishikura_stop_only" # 石倉が最終目的地かのフラグ
+KEY_IS_OYAMA_FOR_ISHIKURA = "is_oyama_for_ishikura" # 大山ケーブル行きで石倉を経由するかのフラグ
 KEY_ORIGIN_STOP_NAME_SHORT = "origin_stop_name_short"
 KEY_VEHICLE_NO = "vehicle_no"
 KEY_DURATION = "duration_text"
@@ -234,7 +235,7 @@ def calculate_and_format_time_until(departure_str, status_text_raw, current_dt_t
                      time_until_str = "発車済みの恐れあり"
             else:
                 delta = bus_dt_today_tokyo - current_dt_tokyo; total_seconds = int(delta.total_seconds()); seconds_until = total_seconds
-                if total_seconds <= 180: is_urgent = True; time_until_str = f"あと{total_seconds // 60}分" if total_seconds >=60 else f"あと{total_seconds}秒" # これは初期表示用
+                if total_seconds <= 180: is_urgent = True; time_until_str = f"あと{total_seconds // 60}分" if total_seconds >=60 else f"あと{total_seconds}秒"
                 else: time_until_str = f"あと{total_seconds // 60}分"
                 if total_seconds <=15: is_urgent = True
         except ValueError: time_until_str = f"時刻形式エラー ({departure_str})"
@@ -306,7 +307,7 @@ def api_data():
             if dest_name:
                 if dest_name.strip() == "石倉": is_ishikura_stop_only = True
                 elif "産業能率大学" in dest_name or "大山ケーブル" in dest_name : is_ishikura_stop_only = False
-                elif "石倉" in dest_name : is_ishikura_stop_only = False
+                elif "石倉" in dest_name : is_ishikura_stop_only = False 
             bus_info[KEY_IS_ISHIKURA_STOP_ONLY] = is_ishikura_stop_only
             logging.info(f"駅発バス情報: 行先='{dest_name}', 石倉止まり判定='{is_ishikura_stop_only}', 系統='{bus_info.get(KEY_SYSTEM_ROUTE_NAME)}', 発時刻='{bus_info.get(KEY_DEPARTURE_TIME)}'")
             processed_buses_for_display_group.append(bus_info)
