@@ -3,57 +3,58 @@
 /* --- 基本変数定義 --- */
 :root {
     /* ライトモードの配色 */
-    --bg-color: #f0f2f5;                     /* 全体の背景色 */
-    --text-color: #1c1e21;                   /* 基本テキスト色 */
-    --text-color-light: #495057;             /* やや薄いテキスト色 */
-    --text-color-subtle: #6c757d;            /* さらに薄いテキスト色 (フッターなど) */
-    --card-bg-color: #fff;                   /* カード要素の背景色 */
-    --card-border-color: #e0e0e0;            /* カード要素の境界線色 */
-    --primary-color: #0d6efd;                /* プライマリカラー (青系) */
-    --primary-color-darker: #0056b3;         /* より濃いプライマリカラー */
-    --urgent-color: #d32f2f;                 /* 緊急時の色 (赤系) */
-    --urgent-color-text: #c62828;            /* 緊急時のテキスト色 */
-    --urgent-bg-color: #ffebee;              /* 緊急時の背景色 */
-    --header-bg-color: #fff;                 /* ヘッダー情報部分の背景色 */
-    --container-bg-color: #fff;              /* メインコンテナの背景色 */
-    --indicator-default-bg: #6c757d;         /* インジケーター (デフォルト) の背景色 */
-    --indicator-default-border: #5a6268;     /* インジケーター (デフォルト) の境界線色 */
-    --indicator-green-bg: #28a745;           /* インジケーター (緑) の背景色 */
-    --indicator-green-border: #1e7e34;       /* インジケーター (緑) の境界線色 */
-    --indicator-yellow-bg: #ffc107;          /* インジケーター (黄) の背景色 */
-    --indicator-yellow-border: #d39e00;      /* インジケーター (黄) の境界線色 */
-    --indicator-red-bg: #dc3545;             /* インジケーター (赤) の背景色 */
-    --indicator-red-border: #b21f2d;         /* インジケーター (赤) の境界線色 */
-    --weather-info-bg: #e0f7fa;              /* 天気情報エリアの背景色 */
-    --weather-info-border: #b2ebf2;          /* 天気情報エリアの境界線色 */
-    --weather-info-text-strong: #00796b;     /* 天気情報エリアの強調テキスト色 */
-    --info-message-bg: #cfe2ff;              /* 情報メッセージの背景色 */
-    --info-message-border: #b6d4fe;          /* 情報メッセージの境界線色 */
-    --info-message-text: #0d6efd;            /* 情報メッセージのテキスト色 */
-    --error-message-bg: #ffcdd2;             /* エラーメッセージの背景色 */
-    --error-message-border: #ef9a9a;         /* エラーメッセージの境界線色 */
-    --error-message-text: #d32f2f;           /* エラーメッセージのテキスト色 */
-    --button-bg: #007bff;                    /* ボタンの背景色 */
-    --button-text-color: #fff;               /* ボタンのテキスト色 */
-    --button-hover-bg: #0056b3;              /* ボタンホバー時の背景色 */
-    --footer-border-color: #eee;             /* フッターの上境界線色 */
+    --bg-color: #f0f2f5;
+    --text-color: #1c1e21;
+    --text-color-light: #495057;
+    --text-color-subtle: #6c757d;
+    --card-bg-color: #fff;
+    --card-border-color: #e0e0e0;
+    --primary-color: #0d6efd;
+    --primary-color-darker: #0056b3;
+    --urgent-color: #d32f2f;
+    --urgent-color-text: #c62828;
+    --urgent-bg-color: #ffebee;
+    --header-bg-color: #fff;
+    --container-bg-color: #fff;
+    --indicator-default-bg: #6c757d;
+    --indicator-default-border: #5a6268;
+    --indicator-green-bg: #28a745;
+    --indicator-green-border: #1e7e34;
+    --indicator-yellow-bg: #ffc107;
+    --indicator-yellow-border: #d39e00;
+    --indicator-red-bg: #dc3545;
+    --indicator-red-border: #b21f2d;
+    --weather-info-bg: #e0f7fa;
+    --weather-info-border: #b2ebf2;
+    --weather-info-text-strong: #00796b;
+    --info-message-bg: #cfe2ff;
+    --info-message-border: #b6d4fe;
+    --info-message-text: #0d6efd;
+    --error-message-bg: #ffcdd2;
+    --error-message-border: #ef9a9a;
+    --error-message-text: #d32f2f;
+    --button-bg: #007bff;
+    --button-text-color: #fff;
+    --button-hover-bg: #0056b3;
+    --footer-border-color: #eee;
 
-    --font-family-base: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; /* 基本フォント */
+    --font-family-base: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
     /* 出発済みバスのスタイル用変数 */
     --departed-bus-opacity: 0.6;
     --departed-bus-bg: #e9ecef;
     --departed-bus-text: #6c757d;
 
-    /* 石倉関連のスタイル用変数 */
-    --ishikura-origin-chip-bg: var(--primary-color-darker); /* 石倉発チップの背景 */
-    --ishikura-origin-chip-text: var(--button-text-color);
-    --ishikura-target-chip-bg: #17a2b8; /* 駅発で石倉が対象の場合のチップ背景 (例: info系青緑) */
-    --ishikura-target-chip-text: #fff;
+    /* --- 石倉関連チップの色指定 (改善案) --- */
+    --ishikura-chip-bg-light: #FF9800; /* オレンジ系 */
+    --ishikura-chip-text-light: #fff;
+    --ishikura-chip-bg-dark: #E65100;  /* 濃いオレンジ系 */
+    --ishikura-chip-text-dark: #fff;
+    /* --- ここまで石倉関連チップの色指定 --- */
 
-    --ishikura-stop-bg-color: #fff3cd;  /* 石倉止まりのバスアイテム背景 (警告色に近い黄色系) */
+    --ishikura-stop-bg-color: #fff3cd;
     --ishikura-stop-border-color: #ffeeba;
-    --oyama-via-ishikura-bg-color: #e2f0d9; /* 大山ケーブル(石倉経由)のバスアイテム背景 (穏やかな緑系) */
+    --oyama-via-ishikura-bg-color: #e2f0d9;
     --oyama-via-ishikura-border-color: #c3e6cb;
 }
 
@@ -72,10 +73,11 @@ body.dark-mode {
     --error-message-bg: #4a1c1c; --error-message-border: #803030; --error-message-text: #ff8a80;
     --button-bg: #4dabf7; --button-text-color: #121212; --button-hover-bg: #1a7fdb; --footer-border-color: #333;
     --departed-bus-opacity: 0.5; --departed-bus-bg: #2a2a2a; --departed-bus-text: #777;
-    --ishikura-origin-chip-bg: var(--primary-color);
-    --ishikura-origin-chip-text: var(--button-text-color);
-    --ishikura-target-chip-bg: #26c6da;
-    --ishikura-target-chip-text: #000;
+
+    /* 石倉関連チップの色は上で定義したダークモード用変数を使用 */
+    /* --ishikura-origin-chip-bg: var(--primary-color); この行は不要になるか、上記の新しい変数で管理 */
+    /* --ishikura-target-chip-bg: #26c6da; この行は不要になるか、上記の新しい変数で管理 */
+
     --ishikura-stop-bg-color: #4d4422;
     --ishikura-stop-border-color: #a1882c;
     --oyama-via-ishikura-bg-color: #2f442f;
@@ -268,7 +270,7 @@ body.dark-mode .bus-number .fas {
     margin-left: 8px;
     margin-right: 8px; /* カウントダウンとの間隔 */
 }
-body.dark-mode .status-badge.status-type-delayed-possible, 
+body.dark-mode .status-badge.status-type-delayed-possible,
 body.dark-mode .status-badge.status-type-delayed-explicit { /* 黄色背景に黒文字 (ダークモード) */
     color: #111;
 }
@@ -276,8 +278,8 @@ body.dark-mode .status-badge.status-type-delayed-explicit { /* 黄色背景に�
 .status-type-delayed-possible { background-color: var(--indicator-yellow-bg); color: #333; }
 .status-type-delayed-explicit { background-color: var(--indicator-yellow-bg); color: #333; padding: 4px 8px; }
 body.dark-mode .status-type-delayed-explicit { color: #111; }
-.status-type-scheduled { background-color: #17a2b8; } 
-body.dark-mode .status-type-scheduled { background-color: #26c6da; }
+.status-type-scheduled { background-color: #17a2b8; } /* INFO系青緑 */
+body.dark-mode .status-type-scheduled { background-color: #26c6da; } /* ダークモードINFO系青緑 */
 .status-type-soon { background-color: var(--urgent-color); }
 .status-type-departed { background-color: var(--indicator-default-bg); }
 
@@ -315,7 +317,7 @@ body.dark-mode .bus-item.urgent .realtime-countdown {
     border-left: 6px solid var(--urgent-color) !important; /* importantで他のボーダー指定を上書き */
     background-color: var(--urgent-bg-color);
 }
-.bus-item.urgent .departure-time, 
+.bus-item.urgent .departure-time,
 .bus-item.urgent .bus-number {
     color: var(--urgent-color-text);
 }
@@ -323,7 +325,7 @@ body.dark-mode .bus-item.urgent .realtime-countdown {
      background-color: var(--urgent-color);
      color: #fff;
 }
-body.dark-mode .bus-item.urgent .departure-time, 
+body.dark-mode .bus-item.urgent .departure-time,
 body.dark-mode .bus-item.urgent .bus-number {
      color: var(--urgent-color);
 }
@@ -343,86 +345,74 @@ body.dark-mode .bus-item.departed-bus {
     border-left-color: var(--text-color-subtle) !important;
 }
 /* 出発済みバスのテキスト色 */
-.bus-item.departed-bus .departure-time, .bus-item.departed-bus .status-badge, 
+.bus-item.departed-bus .departure-time, .bus-item.departed-bus .status-badge,
 .bus-item.departed-bus .realtime-countdown, .bus-item.departed-bus .destination-name-display,
-.bus-item.departed-bus .destination-note, .bus-item.departed-bus .origin-chip,
+.bus-item.departed-bus .destination-note, .bus-item.departed-bus .chip, /* .origin-chip を .chip に変更 */
 .bus-item.departed-bus .via-info, .bus-item.departed-bus .duration-info {
     color: var(--departed-bus-text) !important;
 }
-body.dark-mode .bus-item.departed-bus .departure-time, body.dark-mode .bus-item.departed-bus .status-badge, 
+body.dark-mode .bus-item.departed-bus .departure-time, body.dark-mode .bus-item.departed-bus .status-badge,
 body.dark-mode .bus-item.departed-bus .realtime-countdown, body.dark-mode .bus-item.departed-bus .destination-name-display,
-body.dark-mode .bus-item.departed-bus .destination-note, body.dark-mode .bus-item.departed-bus .origin-chip,
+body.dark-mode .bus-item.departed-bus .destination-note, body.dark-mode .bus-item.departed-bus .chip, /* .origin-chip を .chip に変更 */
 body.dark-mode .bus-item.departed-bus .via-info, body.dark-mode .bus-item.departed-bus .duration-info {
     color: var(--departed-bus-text) !important;
 }
 
 
-/* --- 石倉関連のスタイル --- */
-.origin-chip, .target-chip.ishikura-chip { /* 石倉を示すチップ（バッジ） */
+/* --- 石倉関連のスタイル (改善案適用) --- */
+.chip { /* 汎用チップスタイル */
     display: inline-flex;
     align-items: center;
-    padding: 3px 10px; /* パディング調整 */
-    border-radius: 15px; /* 角丸 */
-    font-size: 0.85em;
-    margin-right: 8px;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 0.85em; /* 他のバッジより少し大きくても良いかも */
     font-weight: bold;
-    line-height: 1.2;
-    vertical-align: middle;
+    line-height: 1.3; /* line-height調整 */
+    margin-right: 8px;
+    vertical-align: middle; /* 中央揃え */
+    white-space: nowrap; /* 折り返しなし */
 }
-.origin-chip .fas, .target-chip.ishikura-chip .fas { /* チップ内のアイコン */
+.chip .fas { /* チップ内のアイコン */
     margin-right: 5px;
-    font-size: 0.9em;
+    font-size: 0.9em; /* アイコンサイズ調整 */
 }
 
-/* 「大学・石倉 ⇒ 駅」の場合の石倉発チップ */
-.origin-chip { 
-    background-color: var(--primary-color); /* 青地に白文字 */
-    color: var(--button-text-color);
+/* 石倉関連チップの共通スタイル */
+.ishikura-chip {
+    background-color: var(--ishikura-chip-bg-light);
+    color: var(--ishikura-chip-text-light);
 }
-body.dark-mode .origin-chip {
-    background-color: var(--primary-color);
-    color: var(--button-text-color); /* ダークモードでも同じか確認 */
-}
-/* 「大学・石倉 ⇒ 駅」の場合の石倉発バスの色は、他と統一（特別な背景色はなし）*/
-.bus-item.ishikura-origin-bus {
-    border-left-color: transparent !important; /* 左ボーダーも通常に戻す */
-    background-color: var(--card-bg-color) !important;
-}
-body.dark-mode .bus-item.ishikura-origin-bus {
-    border-left-color: transparent !important;
-    background-color: var(--card-bg-color) !important;
+body.dark-mode .ishikura-chip {
+    background-color: var(--ishikura-chip-bg-dark);
+    color: var(--ishikura-chip-text-dark);
 }
 
+/* 個別の石倉関連チップ (現状では ishikura-chip で共通の色を使用) */
+/* .ishikura-origin-chip {} */
+/* .ishikura-stop-chip {} */
+/* .ishikura-via-chip {} */
 
-/* 「駅 ⇒ 大学方面」の場合の石倉対象チップ */
-.target-chip.ishikura-chip {
-    background-color: var(--ishikura-target-chip-bg);
-    color: var(--ishikura-target-chip-text);
-}
-body.dark-mode .target-chip.ishikura-chip {
-    background-color: var(--ishikura-target-chip-bg);
-    color: var(--ishikura-target-chip-text);
-}
 
-/* 「石倉止まり」のバスアイテム */
-.bus-item.ishikura-stop-bus {
-    background-color: var(--ishikura-stop-bg-color);
-    /* border-left: 6px solid var(--ishikura-stop-border-color) !important; */ /* チップで示すのでボーダーは任意 */
+/* 石倉止まりのバスアイテムの背景色 (チップで示すので背景色は必須ではないが、残す場合は調整) */
+.bus-item.ishikura-stop-target {
+    /* background-color: var(--ishikura-stop-bg-color); */ /* チップで強調するので背景色は任意 */
+    /* border-left: 4px solid var(--ishikura-chip-bg-light) !important; */ /* 左ボーダーで強調も可 */
 }
-body.dark-mode .bus-item.ishikura-stop-bus {
-    background-color: var(--ishikura-stop-bg-color);
-    /* border-left-color: var(--ishikura-stop-border-color); */
+body.dark-mode .bus-item.ishikura-stop-target {
+    /* background-color: var(--ishikura-stop-bg-color); */
+    /* border-left-color: var(--ishikura-chip-bg-dark) !important; */
 }
 
-/* 「大山ケーブル行き（石倉で下車可）」のバスアイテム */
-.bus-item.oyama-via-ishikura-bus {
-    background-color: var(--oyama-via-ishikura-bg-color);
-    /* border-left: 6px solid var(--oyama-via-ishikura-border-color) !important; */
+/* 大山ケーブル(石倉経由)のバスアイテムの背景色 (チップで示すので背景色は必須ではないが、残す場合は調整) */
+.bus-item.oyama-via-ishikura-target {
+    /* background-color: var(--oyama-via-ishikura-bg-color); */
+    /* border-left: 4px solid var(--ishikura-chip-bg-light) !important; */
 }
-body.dark-mode .bus-item.oyama-via-ishikura-bus {
-    background-color: var(--oyama-via-ishikura-bg-color);
-    /* border-left-color: var(--oyama-via-ishikura-border-color); */
+body.dark-mode .bus-item.oyama-via-ishikura-target {
+    /* background-color: var(--oyama-via-ishikura-bg-color); */
+    /* border-left-color: var(--ishikura-chip-bg-dark) !important; */
 }
+
 
 /* 行き先名と注記 */
 .destination-name-display { /* パースされた行き先名 */
@@ -433,9 +423,6 @@ body.dark-mode .bus-item.oyama-via-ishikura-bus {
 }
 body.dark-mode .destination-name-display {
     color: var(--text-color);
-}
-.destination-note { /* 「(石倉止まり)」などの注記は使用しない方針 */
-    /* display: none; */ /* もし残すならスタイル調整 */
 }
 
 /* --- その他 --- */
