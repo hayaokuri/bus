@@ -203,10 +203,10 @@ async function fetchAndUpdateData() {
                                     <div class="bus-item-main">
                                         <span class="bus-number">${isTrulyUrgent && statusType === 'soon' && !isDeparted ? '<i class="fas fa-exclamation-triangle"></i> ' : ''}${index + 1}.</span>
                                         ${originIndicatorHtml}
-                                        ${ishikuraTargetIndicatorHtml} {/* 石倉チップをここに表示 */}
+                                        ${ishikuraTargetIndicatorHtml}
                                         <span class="departure-time">${departureTimeMain}</span>
                                         ${mainDestinationDisplayHtml}
-                                        {/* <span class="destination-note">${itemDestinationNote}</span>  コメントアウトまたは削除 */}
+                                        ${itemDestinationNote}</span>
                                         ${statusLabel ? `<span class="status-badge status-type-${statusType}">${statusLabel}</span>` : ''}
                                         ${countdownDisplayHtml}
                                     </div>
