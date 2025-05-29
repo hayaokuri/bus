@@ -142,3 +142,21 @@ body.dark-mode .bus-item.departed-bus {opacity: var(--departed-bus-opacity); bac
 body.dark-mode .bus-item.departed-bus .departure-time, body.dark-mode .bus-item.departed-bus .status-badge, body.dark-mode .bus-item.departed-bus .realtime-countdown,
 body.dark-mode .bus-item.departed-bus .destination-note, body.dark-mode .bus-item.departed-bus .origin-chip,
 body.dark-mode .bus-item.departed-bus .via-info, body.dark-mode .bus-item.departed-bus .duration-info { color: var(--departed-bus-text) !important; }
+
+/* 大山ケーブル行き（石倉で下車可）のバスのスタイル */
+.bus-item.oyama-via-ishikura-bus {
+    /* 例えば、石倉止まりとは少し違う色やボーダーにする */
+    background-color: #f0fff0; /* 例: Honeydew */
+    border-left: 6px solid #90ee90 !important; /* 例: LightGreen */
+}
+body.dark-mode .bus-item.oyama-via-ishikura-bus {
+    background-color: #2a3b2a; /* ダークモード用 */
+    border-left-color: #6ab06a !important;
+}
+
+/* 行き先名表示用のスタイル (必要に応じて) */
+.destination-name-display {
+    margin-left: 5px;
+    font-size: 0.9em;
+    color: var(--text-color-light);
+}
