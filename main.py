@@ -30,7 +30,7 @@ ROUTE_DEFINITIONS = {
     },
     "station_to_university_ishikura": {
         "id": "station_to_university_ishikura", "from_stop_no": "18100",
-        "to_stop_no_sanno": "18137", "to_stop_no_ishikura": "18124", # 神奈中への問い合わせは石倉を指定
+        "to_stop_no_sanno": "18137", "to_stop_no_ishikura": "18124",
         "from_stop_name_short": "駅", "to_stop_name_short": "大学方面",
         "from_stop_name_full": "伊勢原駅北口", "to_stop_name_full": "大学・石倉方面",
         "group": "to_university_area"
@@ -53,8 +53,8 @@ KEY_SECONDS_UNTIL_DEPARTURE = "seconds_until_departure"
 KEY_SYSTEM_ROUTE_NAME = "system_route_name"
 KEY_DESTINATION_NAME = "destination_name"
 KEY_VIA_INFO = "via_info"
-KEY_IS_ISHIKURA_STOP_ONLY = "is_ishikura_stop_only" # 石倉が最終目的地かのフラグ
-KEY_IS_OYAMA_FOR_ISHIKURA = "is_oyama_for_ishikura" # 大山ケーブル行きで石倉を経由するかのフラグ
+KEY_IS_ISHIKURA_STOP_ONLY = "is_ishikura_stop_only"
+KEY_IS_OYAMA_FOR_ISHIKURA = "is_oyama_for_ishikura"
 KEY_ORIGIN_STOP_NAME_SHORT = "origin_stop_name_short"
 KEY_VEHICLE_NO = "vehicle_no"
 KEY_DURATION = "duration_text"
@@ -193,6 +193,7 @@ def parse_bus_info_from_html(html_content):
                 else: departure_time_str = "状態不明 (予定情報あり)"
             elif time_part: departure_time_str = f"{time_part}発"
         if departure_time_str:
+            # logging.info(f"[DEBUG PARSE] 行き先: '{destination_name}', 系統: '{system_route_name}', 車両番号: '{vehicle_no}', 状況テキスト: '{final_status_text}', 遅延情報: '{parsed_delay_info}'")
             bus_departure_list.append({
                 KEY_DEPARTURE_TIME: departure_time_str, KEY_STATUS_TEXT: final_status_text,
                 KEY_SYSTEM_ROUTE_NAME: system_route_name, KEY_DESTINATION_NAME: destination_name,
@@ -303,13 +304,14 @@ def api_data():
             bus_info = bus_info_original.copy()
             time_until_str, is_urgent, seconds_until, departure_dt = calculate_and_format_time_until(bus_info.get(KEY_DEPARTURE_TIME, ""), bus_info.get(KEY_STATUS_TEXT, ""), current_dt_tokyo)
             bus_info.update({KEY_TIME_UNTIL: time_until_str, KEY_IS_URGENT: is_urgent, KEY_SECONDS_UNTIL_DEPARTURE: seconds_until, KEY_DEPARTURE_TIME_ISO: departure_dt.isoformat() if departure_dt else None, KEY_DURATION: bus_info_original.get(KEY_DURATION, "不明"), KEY_DELAY_INFO: bus_info_original.get(KEY_DELAY_INFO)})
-            dest_name = bus_info.get(KEY_DESTINATION_NAME, ""); is_ishikura_stop_only = False
+            dest_name = bus_info.get(KEY_DESTINATION_NAME, ""); is_ishikura_stop_only = False; is_oyama_for_ishikura = False
             if dest_name:
                 if dest_name.strip() == "石倉": is_ishikura_stop_only = True
-                elif "産業能率大学" in dest_name or "大山ケーブル" in dest_name : is_ishikura_stop_only = False
-                elif "石倉" in dest_name : is_ishikura_stop_only = False 
+                elif "大山ケーブル" in dest_name: is_oyama_for_ishikura = True; is_ishikura_stop_only = False
+                elif "産業能率大学" in dest_name : is_ishikura_stop_only = False; is_oyama_for_ishikura = False
             bus_info[KEY_IS_ISHIKURA_STOP_ONLY] = is_ishikura_stop_only
-            logging.info(f"駅発バス情報: 行先='{dest_name}', 石倉止まり判定='{is_ishikura_stop_only}', 系統='{bus_info.get(KEY_SYSTEM_ROUTE_NAME)}', 発時刻='{bus_info.get(KEY_DEPARTURE_TIME)}'")
+            bus_info[KEY_IS_OYAMA_FOR_ISHIKURA] = is_oyama_for_ishikura
+            # logging.info(f"駅発バス: 行先='{dest_name}', 石倉止まり='{is_ishikura_stop_only}', 大山(石倉経由)='{is_oyama_for_ishikura}', 系統='{bus_info.get(KEY_SYSTEM_ROUTE_NAME)}'")
             processed_buses_for_display_group.append(bus_info)
         all_routes_bus_data[route_id] = {"from_stop_name": route_config["from_stop_name_short"], "to_stop_name": route_config["to_stop_name_short"], "from_stop_name_full": route_config["from_stop_name_full"], "to_stop_name_full": route_config.get("to_stop_name_full", route_config["to_stop_name_short"]), "buses_to_display": processed_buses_for_display_group[:MAX_BUSES_TO_FETCH], "bus_error_message": "、".join(combined_errors_for_group) if combined_errors_for_group else None, "bus_last_updated_str": datetime.datetime.fromtimestamp(latest_bus_update_time_for_group, TOKYO_TZ).strftime('%H:%M:%S') if latest_bus_update_time_for_group > 0 else "N/A"}
     weather_data_to_display = {}
