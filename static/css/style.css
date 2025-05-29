@@ -38,10 +38,13 @@
     --departed-bus-opacity: 0.6;
     --departed-bus-bg: #e9ecef;
     --departed-bus-text: #6c757d;
-    --ishikura-origin-border-color: #17a2b8; 
-    --ishikura-stop-bg-color: #fffbe6; 
-    --ishikura-stop-border-color: #ffe58f; 
+    --ishikura-origin-border-color: #17a2b8; /* 石倉発の左ボーダー色 */
+    --ishikura-stop-bg-color: #fffbe6; /* 石倉止まりの背景色 */
+    --ishikura-stop-border-color: #ffe58f; /* 石倉止まりのボーダー色 */
+    --oyama-via-ishikura-bg-color: #f0fff0; /* 大山ケーブル(石倉経由)の背景色 */
+    --oyama-via-ishikura-border-color: #90ee90; /* 大山ケーブル(石倉経由)のボーダー色 */
 }
+
 body.dark-mode {
     --bg-color: #121212; --text-color: #e0e0e0; --text-color-light: #b0b0b0; --text-color-subtle: #888;
     --card-bg-color: #1e1e1e; --card-border-color: #333; --primary-color: #4dabf7; --primary-color-darker: #1a7fdb;
@@ -58,7 +61,10 @@ body.dark-mode {
     --departed-bus-opacity: 0.5; --departed-bus-bg: #2a2a2a; --departed-bus-text: #777;
     --ishikura-origin-border-color: #26c6da;
     --ishikura-stop-bg-color: #403d32; --ishikura-stop-border-color: #a1882c;
+    --oyama-via-ishikura-bg-color: #2a3b2a;
+    --oyama-via-ishikura-border-color: #6ab06a;
 }
+
 body {font-family: var(--font-family-base); margin: 0; background-color: var(--bg-color); color: var(--text-color); line-height: 1.7;}
 .container {max-width: 750px; margin: 30px auto; background-color: var(--container-bg-color); padding: 20px 30px 30px 30px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.1);}
 body.dark-mode .container {box-shadow: 0 8px 25px rgba(0,0,0,0.3);}
@@ -142,21 +148,8 @@ body.dark-mode .bus-item.departed-bus {opacity: var(--departed-bus-opacity); bac
 body.dark-mode .bus-item.departed-bus .departure-time, body.dark-mode .bus-item.departed-bus .status-badge, body.dark-mode .bus-item.departed-bus .realtime-countdown,
 body.dark-mode .bus-item.departed-bus .destination-note, body.dark-mode .bus-item.departed-bus .origin-chip,
 body.dark-mode .bus-item.departed-bus .via-info, body.dark-mode .bus-item.departed-bus .duration-info { color: var(--departed-bus-text) !important; }
-
-/* 大山ケーブル行き（石倉で下車可）のバスのスタイル */
-.bus-item.oyama-via-ishikura-bus {
-    /* 例えば、石倉止まりとは少し違う色やボーダーにする */
-    background-color: #f0fff0; /* 例: Honeydew */
-    border-left: 6px solid #90ee90 !important; /* 例: LightGreen */
-}
-body.dark-mode .bus-item.oyama-via-ishikura-bus {
-    background-color: #2a3b2a; /* ダークモード用 */
-    border-left-color: #6ab06a !important;
-}
-
-/* 行き先名表示用のスタイル (必要に応じて) */
-.destination-name-display {
-    margin-left: 5px;
-    font-size: 0.9em;
-    color: var(--text-color-light);
-}
+.bus-item.oyama-via-ishikura-bus { background-color: var(--oyama-via-ishikura-bg-color); border-left: 6px solid var(--oyama-via-ishikura-border-color) !important;}
+body.dark-mode .bus-item.oyama-via-ishikura-bus { background-color: var(--oyama-via-ishikura-bg-color); border-left-color: var(--oyama-via-ishikura-border-color) !important;}
+.destination-name-display { margin-left: 5px; font-size: 0.9em; color: var(--text-color-light); }
+.via-ishikura-note { display: block; font-size: 0.85em; color: var(--primary-color); margin-top: 4px; }
+.via-ishikura-note .fas { margin-right: 4px; }
