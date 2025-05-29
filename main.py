@@ -16,83 +16,71 @@ DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1375497603466395749/4QtO
 WEATHER_LOCATION = "Isehara,JP" # 天気情報を取得する地域
 BASE_URL = "http://real.kanachu.jp/pc/displayapproachinfo" # 神奈中バスロケのベースURL
 
-# 各ルートの情報定義
-# id: ルートの一意な識別子
-# from_stop_no, to_stop_no: 神奈中バスのバス停番号 (to_stop_noは検索に使わない場合もある)
-# from_stop_name_short, to_stop_name_short: UI表示用の短縮名
-# from_stop_name_full, to_stop_name_full: 正式なバス停名
-# group: UIの方向切り替えのグループ ('to_station_area' または 'to_university_area')
-# to_stop_no_ishikura: 「駅→大学方面」で石倉経由のバスを検索する際に神奈中APIのtNOに指定する石倉のバス停番号
 ROUTE_DEFINITIONS = {
-    "sanno_to_station": { # 大学(産能大) -> 駅
+    "sanno_to_station": {
         "id": "sanno_to_station", "from_stop_no": "18137", "to_stop_no": "18100",
         "from_stop_name_short": "大学", "to_stop_name_short": "駅",
         "from_stop_name_full": "産業能率大学", "to_stop_name_full": "伊勢原駅北口",
         "group": "to_station_area"
     },
-    "ishikura_to_station": { # 石倉 -> 駅
+    "ishikura_to_station": {
         "id": "ishikura_to_station", "from_stop_no": "18124", "to_stop_no": "18100",
         "from_stop_name_short": "石倉", "to_stop_name_short": "駅",
         "from_stop_name_full": "石倉", "to_stop_name_full": "伊勢原駅北口",
         "group": "to_station_area"
     },
-    "station_to_university_ishikura": { # 駅 -> 大学方面 (産能大・石倉の両方を含む可能性)
-        "id": "station_to_university_ishikura", "from_stop_no": "18100", # 伊勢原駅北口の代表番号 (要確認)
-        "to_stop_no_sanno": "18137",   # 産業能率大学のバス停番号 (比較用)
-        "to_stop_no_ishikura": "18124", # 石倉のバス停番号 (神奈中APIへのtNOとして使用)
+    "station_to_university_ishikura": {
+        "id": "station_to_university_ishikura", "from_stop_no": "18100",
+        "to_stop_no_sanno": "18137",
+        "to_stop_no_ishikura": "18124",
         "from_stop_name_short": "駅", "to_stop_name_short": "大学方面",
         "from_stop_name_full": "伊勢原駅北口", "to_stop_name_full": "大学・石倉方面",
         "group": "to_university_area"
     }
 }
 
-MAX_BUSES_TO_FETCH = 10       # 1つのルートで取得するバスの最大件数
-WEATHER_FETCH_HOUR = 9        # 天気情報を毎日取得する時刻（時）
-BUS_SERVICE_START_HOUR = 6    # バス運行開始時刻の目安（時）
-BUS_SERVICE_START_MINUTE = 20 # バス運行開始時刻の目安（分）
+MAX_BUSES_TO_FETCH = 10
+WEATHER_FETCH_HOUR = 9
+BUS_SERVICE_START_HOUR = 6
+BUS_SERVICE_START_MINUTE = 20
 
-TOKYO_TZ = pytz.timezone('Asia/Tokyo') # タイムゾーン
+TOKYO_TZ = pytz.timezone('Asia/Tokyo')
 
-# APIレスポンスや内部データで使用するキー名
-KEY_DEPARTURE_TIME = "departure_time"           # パースされた出発時刻文字列 (例: "8:07発 (予定)")
-KEY_STATUS_TEXT = "status_text"                 # 神奈中サイトの元々の接近状況テキスト
-KEY_TIME_UNTIL = "time_until_departure"         # 計算された残り時間の文字列 (初期表示用、例: "あと5分")
-KEY_IS_URGENT = "is_urgent"                     # 緊急フラグ (True/False)
-KEY_DEPARTURE_TIME_ISO = "departure_time_iso"   # ISO 8601形式の発車予定時刻 (JavaScriptでの時刻計算用)
-KEY_SECONDS_UNTIL_DEPARTURE = "seconds_until_departure" # 発車までの残り秒数 (JavaScriptでのカウントダウン用)
-KEY_SYSTEM_ROUTE_NAME = "system_route_name"     # バスの系統名 (例: "伊13")
-KEY_DESTINATION_NAME = "destination_name"       # バスの行き先名 (例: "産業能率大学")
-KEY_VIA_INFO = "via_info"                       # バスの経由情報 (例: "市光前")
-KEY_IS_ISHIKURA_STOP_ONLY = "is_ishikura_stop_only" # 石倉が最終目的地かどうかのフラグ
-KEY_IS_OYAMA_FOR_ISHIKURA = "is_oyama_for_ishikura" # 大山ケーブル行きで石倉を経由するかのフラグ
-KEY_ORIGIN_STOP_NAME_SHORT = "origin_stop_name_short" # 出発地の短縮名 (例: "大学", "石倉")
-KEY_VEHICLE_NO = "vehicle_no"                   # 車両番号 (重複排除用)
-KEY_DURATION = "duration_text"                  # 所要時間文字列 (例: "10分")
-KEY_DELAY_INFO = "delay_info"                   # 遅延情報文字列 (例: "5分遅れ")
+KEY_DEPARTURE_TIME = "departure_time"
+KEY_STATUS_TEXT = "status_text"
+KEY_TIME_UNTIL = "time_until_departure"
+KEY_IS_URGENT = "is_urgent"
+KEY_DEPARTURE_TIME_ISO = "departure_time_iso"
+KEY_SECONDS_UNTIL_DEPARTURE = "seconds_until_departure"
+KEY_SYSTEM_ROUTE_NAME = "system_route_name"
+KEY_DESTINATION_NAME = "destination_name"
+KEY_VIA_INFO = "via_info"
+KEY_IS_ISHIKURA_STOP_ONLY = "is_ishikura_stop_only"
+KEY_IS_OYAMA_FOR_ISHIKURA = "is_oyama_for_ishikura"
+KEY_ORIGIN_STOP_NAME_SHORT = "origin_stop_name_short"
+KEY_VEHICLE_NO = "vehicle_no"
+KEY_DURATION = "duration_text"
+KEY_DELAY_INFO = "delay_info" # 遅延情報キー
 
 app = Flask(__name__)
 
-# ロギング設定
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(module)s:%(lineno)d - %(funcName)s - %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
 
-# グローバルキャッシュ変数
 weather_cache = {"data": None, "timestamp": 0, "error": None}
-bus_data_cache = {} # ルートIDをキーとする辞書に変更 (例: {"sanno_to_station": {...}, "ishikura_to_station": {...}})
+bus_data_cache = {}
 
-weather_fetched_today_g = False # 天気情報をその日に取得済みかのフラグ
-last_date_weather_checked_g = None # 天気情報を最後にチェックした日付
+weather_fetched_today_g = False
+last_date_weather_checked_g = None
 
-WEATHER_CACHE_DURATION_SECONDS = 30 * 60 # 天気情報のキャッシュ有効期間 (30分)
-BUS_DATA_CACHE_DURATION_SECONDS = 10   # バス情報のキャッシュ有効期間 (10秒) - フロントのポーリング間隔と合わせる
+WEATHER_CACHE_DURATION_SECONDS = 30 * 60
+BUS_DATA_CACHE_DURATION_SECONDS = 10
 
 def send_discord_notification(message):
-    """Discordに通知を送信する関数"""
     if not DISCORD_WEBHOOK_URL or "YOUR_DISCORD_WEBHOOK_URL_HERE" in DISCORD_WEBHOOK_URL:
         logging.warning("Discord Webhook URLが未設定またはプレースホルダーのため、通知は送信されません。")
         return
-    
     payload = {"content": message, "username": "バス情報チェッカー"}
     headers = {"Content-Type": "application/json"}
     try:
@@ -105,22 +93,20 @@ def send_discord_notification(message):
         logging.error(f"Discord通知送信中に予期せぬエラー: {e}")
 
 def get_weather_info(api_key, location_query):
-    """OpenWeatherMap APIから天気情報を取得する関数"""
     global weather_fetched_today_g
     if not api_key or "YOUR_OPENWEATHERMAP_API_KEY_HERE" in api_key:
         logging.warning("OpenWeatherMap APIキーが未設定またはプレースホルダーのため、天気情報は取得できません。")
         return None, None, None, None, "APIキー未設定"
-    
     api_url = "http://api.openweathermap.org/data/2.5/weather"
     params = {"q": location_query, "appid": api_key, "units": "metric", "lang": "ja"}
     try:
         response = requests.get(api_url, params=params, timeout=10)
-        response.raise_for_status() # HTTPエラーがあれば例外を発生
+        response.raise_for_status()
         data = response.json()
         if data.get("weather") and len(data["weather"]) > 0:
             main_condition = data["weather"][0].get("main")
             description = data["weather"][0].get("description")
-            condition_code = data["weather"][0].get("id") # 天気アイコン判別用
+            condition_code = data["weather"][0].get("id")
             temp = data.get("main", {}).get("temp")
             logging.info(f"天気情報取得成功 ({location_query}): {main_condition} ({description}), 気温: {temp}°C, Code: {condition_code}")
             weather_fetched_today_g = True
@@ -140,7 +126,6 @@ def get_weather_info(api_key, location_query):
         return None, None, None, None, "予期せぬエラー"
 
 def parse_bus_info_from_html(html_content):
-    """神奈中バス接近情報ページのHTMLコンテンツをパースしてバス情報を抽出する"""
     soup = BeautifulSoup(html_content, 'html.parser')
     bus_departure_list = []
     bus_wrappers = soup.select('div.inner2.pa01 > div.wrap')
@@ -164,14 +149,27 @@ def parse_bus_info_from_html(html_content):
                     elif "車両番号" in th_text:
                         vm = re.search(r'([いす盛おつひ平やまた])\s*(\d+)', td_text); vehicle_no = vm.group(0).strip().replace(" ","") if vm else td_text.split("※")[0].split("★")[0].split("Ｔ")[0].strip()
                     elif "所要時分" in th_text: duration_text = td_text.replace("（通常）","").strip()
-        
+
         col02 = wrap_element.find('div', class_='col02')
         status_text_from_title01 = "情報なし"; departure_time_from_notes = None; delay_info_from_notes = None
+
+        # 遅延情報の抽出強化 (ここでの抽出ロジックはあくまで一例。実際のHTML構造に合わせて調整が必要)
+        delay_message_element = soup.find(string=re.compile(r"停留所への到着が遅れております")) # ページ全体の遅延メッセージ
+        general_delay_message = delay_message_element.strip() if delay_message_element else None
+
         if col02:
             frameBox03 = col02.find('div', class_='frameBox03')
             if frameBox03:
                 title_element = frameBox03.find('p', class_='title01')
-                if title_element: status_text_from_title01 = title_element.get_text(strip=True)
+                if title_element:
+                    status_text_from_title01 = title_element.get_text(strip=True)
+                    # "title01" から "(現在、約X分遅れ)" のような情報を抽出
+                    delay_match_in_title = re.search(r'現在、?約?(\d+\s*分(?:程度)?遅れ)', status_text_from_title01)
+                    if delay_match_in_title:
+                        delay_info_from_notes = delay_match_in_title.group(1).strip()
+                        logging.info(f"遅延情報(title01): {delay_info_from_notes}")
+
+
                 departure_area = frameBox03.find('div', class_='placeArea01 departure')
                 if departure_area:
                     notes_span = departure_area.find('span', class_='notes')
@@ -179,57 +177,83 @@ def parse_bus_info_from_html(html_content):
                         notes_text = notes_span.get_text(strip=True)
                         match_time_in_notes = re.search(r'（(\d{1,2}:\d{2})着予定）', notes_text)
                         if match_time_in_notes: departure_time_from_notes = f"{match_time_in_notes.group(1)}発予定"
-                        match_delay_in_notes = re.search(r'現在\s*(\d+\s*分遅れ)', notes_text)
-                        if match_delay_in_notes: delay_info_from_notes = match_delay_in_notes.group(1).strip()
-        
-        final_status_text = status_text_from_title01; parsed_delay_info = delay_info_from_notes
-        delay_match_title = re.search(r'\(現在、?約?(\d+分)遅れ\)?', status_text_from_title01)
-        if delay_match_title and not parsed_delay_info: parsed_delay_info = delay_match_title.group(1)
-        
+                        # "notes" からも遅延情報を抽出 (より具体的な場合があるため)
+                        match_delay_in_notes = re.search(r'現在\s*(\d+\s*分(?:程度)?遅れ)', notes_text)
+                        if match_delay_in_notes:
+                            delay_info_from_notes = match_delay_in_notes.group(1).strip() # こちらを優先する場合も
+                            logging.info(f"遅延情報(notes): {delay_info_from_notes}")
+
+
+        final_status_text = status_text_from_title01
+        parsed_delay_info = delay_info_from_notes # title01やnotesから抽出した遅延情報を優先
+
+        # もし個別のバス情報に遅延がなくても、ページ全体で遅延メッセージがあればそれを採用
+        if not parsed_delay_info and general_delay_message:
+            # ここでは general_delay_message をそのまま KEY_DELAY_INFO に入れるか、
+            # あるいは「遅延の可能性あり」のような汎用的な文字列にするかを検討
+            # 今回は、個別のバス情報に紐づく遅延を優先するため、general_delay_message の扱いは一旦保留
+            pass
+
+
         if departure_time_from_notes and "発予定" in departure_time_from_notes :
-            if not ("まもなく" in status_text_from_title01 or "出発しました" in status_text_from_title01 or "遅れ" in status_text_from_title01 or parsed_delay_info): final_status_text = departure_time_from_notes
+            if not ("まもなく" in status_text_from_title01 or "出発しました" in status_text_from_title01 or "遅れ" in status_text_from_title01 or parsed_delay_info):
+                final_status_text = departure_time_from_notes
             else:
-                time_part_match_original = re.search(r'\d{1,2}:\d{2}', status_text_from_title01); time_part_match_notes = re.search(r'\d{1,2}:\d{2}', departure_time_from_notes)
-                current_status_part = re.sub(r'\S*を\d{1,2}:\d{2}発予定', '', status_text_from_title01, count=1).strip(); current_status_part = re.sub(r'\d{1,2}:\d{2}発', '', current_status_part).strip()
-                if time_part_match_notes: final_status_text = f"{time_part_match_notes.group(0)}発 {current_status_part}"
-                elif time_part_match_original: final_status_text = f"{time_part_match_original.group(0)}発 {current_status_part}"
-                else: final_status_text = current_status_part
-                if parsed_delay_info and parsed_delay_info not in final_status_text: final_status_text += f" ({parsed_delay_info})"
-        
+                time_part_match_original = re.search(r'\d{1,2}:\d{2}', status_text_from_title01)
+                time_part_match_notes = re.search(r'\d{1,2}:\d{2}', departure_time_from_notes)
+                current_status_part = re.sub(r'\S*を\d{1,2}:\d{2}発予定', '', status_text_from_title01, count=1).strip()
+                current_status_part = re.sub(r'\d{1,2}:\d{2}発', '', current_status_part).strip()
+
+                if time_part_match_notes:
+                    final_status_text = f"{time_part_match_notes.group(0)}発 {current_status_part}"
+                elif time_part_match_original:
+                    final_status_text = f"{time_part_match_original.group(0)}発 {current_status_part}"
+                else:
+                    final_status_text = current_status_part
+
+                if parsed_delay_info and parsed_delay_info not in final_status_text:
+                    final_status_text += f" ({parsed_delay_info})"
+
+
         departure_time_str = None
-        if "まもなく発車します" in final_status_text or "まもなく到着" in final_status_text: departure_time_str = "まもなく発車します"
-        elif "通過しました" in final_status_text or "出発しました" in final_status_text: departure_time_str = "出発しました"
+        if "まもなく発車します" in final_status_text or "まもなく到着" in final_status_text:
+            departure_time_str = "まもなく発車します"
+        elif "通過しました" in final_status_text or "出発しました" in final_status_text:
+            departure_time_str = "出発しました"
         else:
-            match_time_candidate = re.search(r'(\d{1,2}:\d{2})発?', final_status_text); time_part = None
-            if match_time_candidate: time_part = match_time_candidate.group(1)
+            match_time_candidate = re.search(r'(\d{1,2}:\d{2})発?', final_status_text)
+            time_part = None
+            if match_time_candidate:
+                time_part = match_time_candidate.group(1)
+
             if "予定通り発車します" in final_status_text:
                 if time_part: departure_time_str = f"{time_part}発 (予定通り)"
                 else: departure_time_str = "状態不明 (予定通り情報あり)"
             elif parsed_delay_info: # 遅延情報がある場合
-                 if time_part: departure_time_str = f"{time_part}発 ({parsed_delay_info})"
+                 if time_part: departure_time_str = f"{time_part}発 ({parsed_delay_info})" # delay_info をここでも使う
                  else: departure_time_str = f"時刻不明 ({parsed_delay_info})"
-            elif "頃発車します" in final_status_text:
+            elif "頃発車します" in final_status_text or "遅れて到着する見込み" in final_status_text : # 神奈中サイトの他の遅延表現
                 if time_part: departure_time_str = f"{time_part}発 (遅延可能性あり)"
                 else: departure_time_str = "状態不明 (遅延情報あり)"
+                if not parsed_delay_info: parsed_delay_info = "遅延" #汎用的な遅延フラグ
             elif "発予定" in final_status_text:
                 if time_part: departure_time_str = f"{time_part}発 (予定)"
                 else: departure_time_str = "状態不明 (予定情報あり)"
-            elif time_part: departure_time_str = f"{time_part}発"
-        
+            elif time_part:
+                departure_time_str = f"{time_part}発"
+
         if departure_time_str:
             bus_departure_list.append({
                 KEY_DEPARTURE_TIME: departure_time_str, KEY_STATUS_TEXT: final_status_text,
                 KEY_SYSTEM_ROUTE_NAME: system_route_name, KEY_DESTINATION_NAME: destination_name,
                 KEY_VIA_INFO: via_info, KEY_VEHICLE_NO: vehicle_no, KEY_DURATION: duration_text,
-                KEY_DELAY_INFO: parsed_delay_info
+                KEY_DELAY_INFO: parsed_delay_info # 抽出した遅延情報を格納
             })
     return bus_departure_list
 
 def calculate_and_format_time_until(departure_str, status_text_raw, current_dt_tokyo):
-    """発車時刻文字列と現在時刻から、残り時間や緊急度を計算する"""
     is_urgent = False; time_until_str = ""; seconds_until = -1; departure_datetime_tokyo = None
-    
-    # 発車時刻を過ぎているのに「まもなく発車」と表示されるケースへの対応
+
     match_time_for_check = re.search(r'(\d{1,2}:\d{2})発', departure_str)
     if match_time_for_check:
         try:
@@ -241,160 +265,134 @@ def calculate_and_format_time_until(departure_str, status_text_raw, current_dt_t
                 logging.info(f"発車時刻後の「まもなく」を修正: {departure_str}")
         except Exception as e: logging.warning(f"発車時刻後「まもなく」修正中のエラー: {e}")
 
-    if "まもなく発車します" in departure_str: time_until_str = "まもなく"; is_urgent = True; seconds_until = 10 # 10秒を「まもなく」の仮秒数とする
+    if "まもなく発車します" in departure_str: time_until_str = "まもなく"; is_urgent = True; seconds_until = 10
     elif "出発しました" in departure_str or "発車済みの恐れあり" in departure_str: time_until_str = "出発済み"
     else:
         match = re.search(r'(\d{1,2}:\d{2})発', departure_str)
-        if not match: # 時刻がパースできない場合
+        if not match:
             if "(予定通り)" in departure_str: time_until_str = ""
             elif "(遅延可能性あり)" in departure_str: time_until_str = "遅延可能性あり"
             elif "(予定)" in departure_str: time_until_str = "予定"
             return time_until_str, is_urgent, seconds_until, departure_datetime_tokyo
-        
+
         bus_time_str = match.group(1)
         try:
             bus_hour, bus_minute = map(int, bus_time_str.split(':'))
             bus_dt_today_tokyo = current_dt_tokyo.replace(hour=bus_hour, minute=bus_minute, second=0, microsecond=0)
             departure_datetime_tokyo = bus_dt_today_tokyo
-            if bus_dt_today_tokyo < current_dt_tokyo and (current_dt_tokyo.hour >= 20 and bus_hour <= 5): # 日付跨ぎ処理
+            if bus_dt_today_tokyo < current_dt_tokyo and (current_dt_tokyo.hour >= 20 and bus_hour <= 5):
                 bus_dt_today_tokyo += datetime.timedelta(days=1); departure_datetime_tokyo = bus_dt_today_tokyo
-            
-            if bus_dt_today_tokyo < current_dt_tokyo: # 発車時刻を過ぎている
+
+            if bus_dt_today_tokyo < current_dt_tokyo:
                 time_until_str = "出発済み"
                 if "予定通り発車します" not in status_text_raw and "通過しました" not in status_text_raw and "出発しました" not in status_text_raw and not any(s in departure_str for s in ["(予定通り)", "(遅延", "(予定)"]):
                      time_until_str = "発車済みの恐れあり"
-            else: # これから発車
+            else:
                 delta = bus_dt_today_tokyo - current_dt_tokyo; total_seconds = int(delta.total_seconds()); seconds_until = total_seconds
-                # フロントエンドでの詳細なカウントダウン表示のための初期文字列 (ここでの表示はシンプルでも可)
-                if total_seconds <= 180: # 3分以内
+                if total_seconds <= 180:
                     is_urgent = True
                     time_until_str = f"あと{total_seconds // 60}分" if total_seconds >=60 else f"あと{total_seconds}秒"
-                else: # 3分より大きい
+                else:
                     time_until_str = f"あと{total_seconds // 60}分"
-                if total_seconds <=15: is_urgent = True # 15秒以内も緊急扱い
+                if total_seconds <=15: is_urgent = True
         except ValueError: time_until_str = f"時刻形式エラー ({departure_str})"
         except Exception: time_until_str = "計算エラー"; logging.exception(f"calculate_and_format_time_untilでエラー: dep={departure_str}, status={status_text_raw}")
-    
-    # 遅延情報があれば緊急度を下げる（ただし「まもなく」の場合は除く）
+
     if ("遅延可能性あり" in departure_str or "分遅れ" in departure_str) and seconds_until > 0 and "まもなく" not in time_until_str:
-        is_urgent = False
-    # 「まもなく」と判断された場合は常に緊急
+        is_urgent = False # 遅延明示なら緊急度を下げる
     if "まもなく" in time_until_str:
         is_urgent = True
-        
+
     return time_until_str, is_urgent, seconds_until, departure_datetime_tokyo
 
 def fetch_and_cache_bus_data(route_id, from_stop_no, to_stop_no_for_request, current_time_unix):
-    """指定されたルートのバス情報を取得またはキャッシュから取得し、キャッシュを更新する"""
     if route_id not in bus_data_cache:
         bus_data_cache[route_id] = {"data": [], "timestamp": 0, "error": None, "data_valid": True}
-    
     active_bus_cache = bus_data_cache[route_id]
 
     if current_time_unix - active_bus_cache.get("timestamp", 0) > BUS_DATA_CACHE_DURATION_SECONDS \
        or not active_bus_cache.get("data_valid", False):
         logging.info(f"バス情報({route_id})を神奈中サイトから更新します。")
         params = {'fNO': from_stop_no}
-        if to_stop_no_for_request: # 降車バス停が指定されていればリクエストに含める
+        if to_stop_no_for_request:
             params['tNO'] = to_stop_no_for_request
-        
         try:
             response = requests.get(BASE_URL, params=params, timeout=10)
             response.raise_for_status()
             html_content = response.content.decode('shift_jis', errors='replace')
-            parsed_buses = parse_bus_info_from_html(html_content) # HTMLをパース
+            parsed_buses = parse_bus_info_from_html(html_content)
             active_bus_cache["data"] = parsed_buses
             active_bus_cache["error"] = None
         except requests.exceptions.Timeout:
             active_bus_cache["error"] = "バス情報取得タイムアウト"; active_bus_cache["data"] = []
         except requests.exceptions.RequestException as e:
             active_bus_cache["error"] = f"バス情報取得リクエストエラー: {e}"; active_bus_cache["data"] = []
-        except Exception as e: # パースエラーなども含む
+        except Exception as e:
             active_bus_cache["error"] = f"バス情報処理中に予期せぬエラー: {e}"; active_bus_cache["data"] = []
             logging.exception(f"バス情報処理エラー ({route_id})")
-        
         active_bus_cache["timestamp"] = current_time_unix
         active_bus_cache["data_valid"] = not active_bus_cache.get("error")
-        
     return active_bus_cache.get("data", []), active_bus_cache.get("error")
 
 @app.route('/')
 def index():
-    """メインページを表示する"""
     app.config['ACTIVE_DATA_FETCH_INTERVAL'] = BUS_DATA_CACHE_DURATION_SECONDS
     return render_template('index.html', config=app.config)
 
 @app.route('/api/data')
 def api_data():
-    """バス接近情報と天気情報をJSON形式で返すAPIエンドポイント"""
     global weather_cache, weather_fetched_today_g, last_date_weather_checked_g
-    
     requested_direction_group = request.args.get('direction_group', 'to_station_area')
-    all_routes_bus_data = {} # フロントに返す整形済みバスデータ
+    all_routes_bus_data = {}
     current_dt_tokyo = datetime.datetime.now(TOKYO_TZ)
     current_time_unix = time.time()
-    
     processed_buses_for_display_group = []
     combined_errors_for_group = []
     latest_bus_update_time_for_group = 0
 
-    if requested_direction_group == 'to_station_area': # 大学・石倉 ⇒ 駅
-        # 大学発と石倉発のバス情報をそれぞれ取得
+    if requested_direction_group == 'to_station_area':
         sanno_buses_raw, sanno_error = fetch_and_cache_bus_data("sanno_to_station", ROUTE_DEFINITIONS["sanno_to_station"]["from_stop_no"], ROUTE_DEFINITIONS["sanno_to_station"]["to_stop_no"], current_time_unix)
         ishikura_buses_raw, ishikura_error = fetch_and_cache_bus_data("ishikura_to_station", ROUTE_DEFINITIONS["ishikura_to_station"]["from_stop_no"], ROUTE_DEFINITIONS["ishikura_to_station"]["to_stop_no"], current_time_unix)
 
         if sanno_error: combined_errors_for_group.append(f"大学発: {sanno_error}")
         if ishikura_error: combined_errors_for_group.append(f"石倉発: {ishikura_error}")
-        
         sanno_ts = bus_data_cache.get("sanno_to_station", {}).get("timestamp", 0)
         ishikura_ts = bus_data_cache.get("ishikura_to_station", {}).get("timestamp", 0)
         latest_bus_update_time_for_group = max(sanno_ts, ishikura_ts)
-
-        # 車両番号で重複を排除しつつ、情報をマージ
         sanno_vehicle_numbers = {bus.get(KEY_VEHICLE_NO) for bus in sanno_buses_raw if bus.get(KEY_VEHICLE_NO)}
-        
+
         for bus_list_raw, origin_route_id in [(sanno_buses_raw, "sanno_to_station"), (ishikura_buses_raw, "ishikura_to_station")]:
             for bus_info_original in bus_list_raw:
-                if origin_route_id == "ishikura_to_station": # 石倉発の場合のみ重複チェック
+                if origin_route_id == "ishikura_to_station":
                     vehicle_no = bus_info_original.get(KEY_VEHICLE_NO)
                     if vehicle_no and vehicle_no in sanno_vehicle_numbers:
-                        continue # 大学発と重複する車両はスキップ
-                
-                bus_info = bus_info_original.copy() # 元の情報をコピーして加工
+                        continue
+                bus_info = bus_info_original.copy()
                 time_until_str, is_urgent, seconds_until, departure_dt = calculate_and_format_time_until(
                     bus_info.get(KEY_DEPARTURE_TIME, ""), bus_info.get(KEY_STATUS_TEXT, ""), current_dt_tokyo
                 )
                 bus_info.update({
                     KEY_TIME_UNTIL: time_until_str,
-                    KEY_IS_URGENT: is_urgent,
+                    KEY_IS_URGENT: is_urgent, # is_urgent は calculate_and_format_time_until から
                     KEY_SECONDS_UNTIL_DEPARTURE: seconds_until,
                     KEY_DEPARTURE_TIME_ISO: departure_dt.isoformat() if departure_dt else None,
                     KEY_ORIGIN_STOP_NAME_SHORT: ROUTE_DEFINITIONS[origin_route_id]["from_stop_name_short"],
-                    KEY_DURATION: bus_info_original.get(KEY_DURATION, "不明"), # パース結果を引き継ぐ
-                    KEY_DELAY_INFO: bus_info_original.get(KEY_DELAY_INFO)     # パース結果を引き継ぐ
+                    KEY_DURATION: bus_info_original.get(KEY_DURATION, "不明"),
+                    KEY_DELAY_INFO: bus_info_original.get(KEY_DELAY_INFO) # パース結果をそのまま渡す
                 })
                 processed_buses_for_display_group.append(bus_info)
-        
-        # 発車時刻順にソート（出発済みは後方、未出発は昇順）
         processed_buses_for_display_group.sort(key=lambda b: (b[KEY_SECONDS_UNTIL_DEPARTURE] == -1, b[KEY_SECONDS_UNTIL_DEPARTURE]))
-        
         all_routes_bus_data['to_station_combined'] = {
-            "from_stop_name": "大学・石倉", 
-            "to_stop_name": "駅",
-            "buses_to_display": processed_buses_for_display_group[:MAX_BUSES_TO_FETCH], # 上位10件に絞る
+            "from_stop_name": "大学・石倉", "to_stop_name": "駅",
+            "buses_to_display": processed_buses_for_display_group[:MAX_BUSES_TO_FETCH],
             "bus_error_message": "、".join(combined_errors_for_group) if combined_errors_for_group else None,
             "bus_last_updated_str": datetime.datetime.fromtimestamp(latest_bus_update_time_for_group, TOKYO_TZ).strftime('%H:%M:%S') if latest_bus_update_time_for_group > 0 else "N/A",
         }
-
-    elif requested_direction_group == 'to_university_area': # 駅 ⇒ 大学方面
+    elif requested_direction_group == 'to_university_area':
         route_id = "station_to_university_ishikura"
         route_config = ROUTE_DEFINITIONS[route_id]
-        
         buses_raw, error = fetch_and_cache_bus_data(
-            route_id,
-            route_config["from_stop_no"],
-            route_config["to_stop_no_ishikura"], # 神奈中APIへは「石倉」を行き先として問い合わせる
-            current_time_unix
+            route_id, route_config["from_stop_no"], route_config["to_stop_no_ishikura"], current_time_unix
         )
         if error: combined_errors_for_group.append(f"駅発 ({route_config['from_stop_name_full']}): {error}")
         latest_bus_update_time_for_group = bus_data_cache.get(route_id, {}).get("timestamp", 0)
@@ -409,47 +407,31 @@ def api_data():
                 KEY_SECONDS_UNTIL_DEPARTURE: seconds_until,
                 KEY_DEPARTURE_TIME_ISO: departure_dt.isoformat() if departure_dt else None,
                 KEY_DURATION: bus_info_original.get(KEY_DURATION, "不明"),
-                KEY_DELAY_INFO: bus_info_original.get(KEY_DELAY_INFO)
+                KEY_DELAY_INFO: bus_info_original.get(KEY_DELAY_INFO) # パース結果をそのまま渡す
             })
-            
             dest_name = bus_info.get(KEY_DESTINATION_NAME, "").strip()
-            is_ishikura_stop_only = False
-            is_oyama_for_ishikura = False
-
-            if dest_name: # 行き先名が取得できている場合のみ判定
-                if dest_name == "石倉": # 行き先名が完全に「石倉」の場合
-                    is_ishikura_stop_only = True
-                elif "大山ケーブル" in dest_name: # 「大山ケーブル」が含まれていれば石倉経由とみなす
-                    is_oyama_for_ishikura = True
-                    is_ishikura_stop_only = False # 大山ケーブル行きは石倉「止まり」ではない
-                elif "産業能率大学" in dest_name: # 「産業能率大学」が含まれていれば石倉止まりではない
-                    is_ishikura_stop_only = False
-                    is_oyama_for_ishikura = False # 産能大行きが必ずしも大山方面に行くとは限らない
-            
+            is_ishikura_stop_only = False; is_oyama_for_ishikura = False
+            if dest_name:
+                if dest_name == "石倉": is_ishikura_stop_only = True
+                elif "大山ケーブル" in dest_name: is_oyama_for_ishikura = True; is_ishikura_stop_only = False
+                elif "産業能率大学" in dest_name: is_ishikura_stop_only = False; is_oyama_for_ishikura = False
             bus_info[KEY_IS_ISHIKURA_STOP_ONLY] = is_ishikura_stop_only
             bus_info[KEY_IS_OYAMA_FOR_ISHIKURA] = is_oyama_for_ishikura
-            
-            # logging.info(f"駅発バス: 行先='{dest_name}', 石倉止まり='{is_ishikura_stop_only}', 大山(石倉経由可)='{is_oyama_for_ishikura}', 系統='{bus_info.get(KEY_SYSTEM_ROUTE_NAME)}'")
             processed_buses_for_display_group.append(bus_info)
-        
         all_routes_bus_data[route_id] = {
-            "from_stop_name": route_config["from_stop_name_short"],
-            "to_stop_name": route_config["to_stop_name_short"],
-            "from_stop_name_full": route_config["from_stop_name_full"],
-            "to_stop_name_full": route_config["to_stop_name_full"],
+            "from_stop_name": route_config["from_stop_name_short"], "to_stop_name": route_config["to_stop_name_short"],
+            "from_stop_name_full": route_config["from_stop_name_full"], "to_stop_name_full": route_config["to_stop_name_full"],
             "buses_to_display": processed_buses_for_display_group[:MAX_BUSES_TO_FETCH],
             "bus_error_message": "、".join(combined_errors_for_group) if combined_errors_for_group else None,
             "bus_last_updated_str": datetime.datetime.fromtimestamp(latest_bus_update_time_for_group, TOKYO_TZ).strftime('%H:%M:%S') if latest_bus_update_time_for_group > 0 else "N/A",
         }
-    
-    # 天気情報取得
+
     weather_data_to_display = {}
     if last_date_weather_checked_g != current_dt_tokyo.date():
-        weather_fetched_today_g = False
-        last_date_weather_checked_g = current_dt_tokyo.date()
+        weather_fetched_today_g = False; last_date_weather_checked_g = current_dt_tokyo.date()
         logging.info(f"日付変更 ({current_dt_tokyo.date()})。天気取得フラグ解除。")
     if (current_dt_tokyo.hour == WEATHER_FETCH_HOUR and not weather_fetched_today_g) or \
-       (not weather_cache.get("data") and not weather_cache.get("error")): # 初回またはキャッシュなしの場合も取得
+       (not weather_cache.get("data") and not weather_cache.get("error")):
         logging.info(f"{WEATHER_FETCH_HOUR}時台の天気情報更新、または初回取得試行。")
         condition, description, temp, condition_code, error = get_weather_info(OPENWEATHERMAP_API_KEY, WEATHER_LOCATION)
         weather_cache["data"] = {
@@ -460,16 +442,14 @@ def api_data():
         if not error and condition: weather_fetched_today_g = True
     weather_data_to_display = weather_cache.get("data", {}); weather_data_to_display["error_message"] = weather_cache.get("error")
 
-    # システム健全性判定
     system_healthy = True; system_warning = False
-    if combined_errors_for_group: # いずれかのバスルート取得でエラーがあれば不健康
+    if combined_errors_for_group:
         system_healthy = False
         logging.warning(f"システム状態: バス情報取得エラーのため不健康 - {', '.join(combined_errors_for_group)}")
-    
     current_weather_error = weather_data_to_display.get("error_message")
     if current_weather_error:
         if "APIキー" in current_weather_error or "認証エラー" in current_weather_error : system_healthy = False
-        else: system_warning = True # APIキー以外の天気エラーは警告
+        else: system_warning = True
         logging.warning(f"システム状態: 天気情報に問題 - {current_weather_error}")
 
     return jsonify(
