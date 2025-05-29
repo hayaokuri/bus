@@ -270,7 +270,7 @@ async function fetchAndUpdateData() {
                                     <div class="bus-item-sub">
                                         ${originIndicatorHtml}
                                         ${ishikuraRelatedChipHtml}
-                                        ${delayChipHtml} {/* 遅延チップをここに追加 */}
+                                        ${delayChipHtml}
                                         ${statusLabel ? `<span class="status-badge status-type-${statusType}">${statusLabel}</span>` : ''}
                                         ${bus.via_info && bus.via_info !== "不明" ? `<span class="via-info">経由: ${bus.via_info}</span>` : ""}
                                         ${durationDisplay}
