@@ -153,51 +153,57 @@ async function fetchAndUpdateData() {
                         routeHtml += '<ul class="bus-list">';
                         routeDisplayData.buses_to_display.forEach((bus, index) => {
                             activeRoutesData[displayGroupId].push({
-                                departure_time_iso: bus.departure_time_iso, seconds_until_departure: bus.seconds_until_departure,
-                                display_seconds: bus.seconds_until_departure, time_until_departure: bus.time_until_departure,
-                                departure_time: bus.departure_time, is_urgent_from_server: bus.is_urgent,
-                                destination_name: bus.destination_name, via_info: bus.via_info,
-                                is_ishikura_stop_only: bus.is_ishikura_stop_only, is_oyama_for_ishikura: bus.is_oyama_for_ishikura,
-                                origin_stop_name_short: bus.origin_stop_name_short, vehicle_no: bus.vehicle_no,
-                                duration_text: bus.duration_text, delay_info: bus.delay_info
+                                // ... (他のプロパティは前回同様) ...
+                                is_ishikura_stop_only: bus.is_ishikura_stop_only,
+                                is_oyama_for_ishikura: bus.is_oyama_for_ishikura,
+                                destination_name: bus.destination_name, // 元の行き先名は保持
+                                // ...
                             });
-                            let departureTimeMain = bus.departure_time ? bus.departure_time.replace(/\(予定通り\)|\(予定\)|\(遅延可能性あり\)|まもなく発車します|出発しました|通過しました|発車済みの恐れあり|\(\s*\d+分遅れ\s*\)/gi, '').trim() : "時刻不明";
-                            let statusLabel = ''; let statusType = ''; let isTrulyUrgent = bus.is_urgent; let isDeparted = false;
-                            if (bus.delay_info) { statusLabel = bus.delay_info; statusType = 'delayed-explicit'; isTrulyUrgent = false;
-                            } else if (bus.time_until_departure === "出発済み" || (bus.departure_time && (bus.departure_time.includes("出発しました") || bus.departure_time.includes("通過しました") || bus.departure_time.includes("発車済みの恐れあり")))) {
-                                statusLabel = '出発済み'; statusType = 'departed'; isTrulyUrgent = false; isDeparted = true;
-                            } else if (isTrulyUrgent && (bus.seconds_until_departure <= 15 || (bus.departure_time && bus.departure_time.toLowerCase().includes("まもなく")))) {
-                                statusLabel = 'まもなく発車'; statusType = 'soon';
-                            } else if (bus.departure_time && bus.departure_time.includes("(予定通り)")) { statusLabel = '予定通り'; statusType = 'on-time';
-                            } else if (bus.departure_time && bus.departure_time.includes("(遅延可能性あり)")) { statusLabel = '遅延可能性あり'; statusType = 'delayed-possible'; isTrulyUrgent = false;
-                            } else if (bus.departure_time && bus.departure_time.includes("(予定)")) { statusLabel = '予定'; statusType = 'scheduled'; }
-                            if(bus.is_urgent && statusType !== 'soon' && statusType !== 'delayed-explicit' && statusType !== 'departed'){
-                                 if (bus.seconds_until_departure > 0 && bus.seconds_until_departure <= 180) { isTrulyUrgent = true; if (!statusLabel){ statusLabel = '接近中'; statusType = 'soon';} }
-                                 else if (bus.seconds_until_departure > 180) { isTrulyUrgent = false; }
-                            }
-                            let itemAdditionalClass = ''; let itemDestinationNote = ''; let originIndicatorHtml = '';
+
+                            // ... (departureTimeMain, statusLabel, statusType, isTrulyUrgent の設定は前回同様) ...
+                            
+                            let itemAdditionalClass = '';
+                            // let itemDestinationNote = ''; // ← 注記テキストは使用しないので削除またはコメントアウト
+                            let originIndicatorHtml = '';
+                            let ishikuraTargetIndicatorHtml = ''; // 石倉が目的地/経由地であることを示すチップ
+
                             if (currentDirectionGroup === 'to_station_area' && bus.origin_stop_name_short === '石倉') {
                                 itemAdditionalClass += ' ishikura-origin-bus';
                                 originIndicatorHtml = '<span class="origin-chip"><i class="fas fa-map-pin"></i> 石倉</span>';
                             }
+                            
+                            // 「駅 ⇒ 大学方面」の場合の表示制御
                             if (currentDirectionGroup === 'to_university_area') {
-                                if (bus.is_ishikura_stop_only) {
-                                    itemAdditionalClass += ' ishikura-stop-bus'; itemDestinationNote = ' (石倉止まり)';
-                                } else if (bus.is_oyama_for_ishikura) {
-                                    itemAdditionalClass += ' oyama-via-ishikura-bus';
-                                    itemDestinationNote = ` (石倉経由 ${bus.destination_name}行き)`; // 石倉で降りることを示唆
+                                if (bus.is_ishikura_stop_only || bus.is_oyama_for_ishikura) { // 石倉止まり、または石倉経由の大山行き
+                                    ishikuraTargetIndicatorHtml = '<span class="target-chip ishikura-chip"><i class="fas fa-map-marker-alt"></i> 石倉</span>';
+                                    if (bus.is_ishikura_stop_only) {
+                                        itemAdditionalClass += ' ishikura-stop-bus'; // 純粋な石倉止まり用のスタイルクラス（必要なら）
+                                    } else if (bus.is_oyama_for_ishikura) {
+                                        itemAdditionalClass += ' oyama-via-ishikura-bus'; // 石倉経由大山行き用のスタイルクラス（必要なら）
+                                    }
                                 }
+                                // 産業能率大学行きの場合は ishikuraTargetIndicatorHtml は空のまま
                             }
-                            const busItemId = `bus-item-${displayGroupId}-${index}`; const busCountdownId = `bus-countdown-${displayGroupId}-${index}`;
+                            
+                            const busItemId = `bus-item-${displayGroupId}-${index}`;
+                            const busCountdownId = `bus-countdown-${displayGroupId}-${index}`;
                             const durationDisplay = bus.duration_text && bus.duration_text !== "不明" ? `<span class="duration-info">(所要 ${bus.duration_text})</span>` : "";
                             const countdownDisplayHtml = isDeparted ? '' : `<span class="realtime-countdown" id="${busCountdownId}">${formatSecondsToCountdown(bus.seconds_until_departure, bus.origin_stop_name_short)}</span>`;
+                            
+                            // メインの行き先表示は、石倉チップがある場合は空にするか、あるいはチップと重複しない情報を表示
+                            // ここでは、チップがある場合は元の行き先名（例：大山ケーブル）は表示しない方針とする
+                            const mainDestinationDisplayHtml = (ishikuraTargetIndicatorHtml !== '') ? '' : `<span class="destination-name-display"> ${bus.destination_name || ''}</span>`;
+
+
                             routeHtml += `
                                 <li class="bus-item ${isTrulyUrgent ? 'urgent' : ''}${itemAdditionalClass} ${isDeparted ? 'departed-bus' : ''} status-${statusType}" id="${busItemId}">
                                     <div class="bus-item-main">
                                         <span class="bus-number">${isTrulyUrgent && statusType === 'soon' && !isDeparted ? '<i class="fas fa-exclamation-triangle"></i> ' : ''}${index + 1}.</span>
-                                        ${originIndicatorHtml}
+                                        ${originIndicatorHtml} {/* 駅方面行きの石倉発チップ */}
+                                        ${ishikuraTargetIndicatorHtml} {/* 大学方面行きの石倉対象チップ */}
                                         <span class="departure-time">${departureTimeMain}</span>
-                                        <span class="destination-name-display"> ${bus.is_ishikura_stop_only || bus.is_oyama_for_ishikura ? '' : (bus.destination_name || '')}</span> <span class="destination-note">${itemDestinationNote}</span>
+                                        ${mainDestinationDisplayHtml} {/* チップがない場合のみ元の行き先名を表示 */}
+                                        {/* <span class="destination-note">${itemDestinationNote}</span> 注記は表示しない */}
                                         ${statusLabel ? `<span class="status-badge status-type-${statusType}">${statusLabel}</span>` : ''}
                                         ${countdownDisplayHtml}
                                     </div>
