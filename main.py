@@ -65,7 +65,7 @@ KEY_RAW_HTML_STATUS = "raw_html_status" # デバッグ用に元のHTMLステー�
 
 app = Flask(__name__)
 
-logging.basicConfig(level=logging.INFO,
+logging.basicConfig(level=logging.WARNING,
                     format='%(asctime)s - %(levelname)s - %(module)s:%(lineno)d - %(funcName)s - %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
 
