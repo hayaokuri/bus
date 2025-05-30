@@ -58,10 +58,6 @@
     --delay-chip-text-light: #333333;
     --delay-chip-bg-dark: #ffd54f;
     --delay-chip-text-dark: #111111;
-
-    /* 石倉経由/方面のバスアイテムの背景色 (任意) - ここでは定義しない */
-    /* --ishikura-via-target-bg-light: #e0f2f7; */
-    /* --ishikura-via-target-bg-dark: #1c3a4a;  */
 }
 
 body.dark-mode {
@@ -84,7 +80,7 @@ body.dark-mode {
     --departed-bus-text: #888888;
 }
 
-/* --- 基本レイアウト、ヘッダー、ボタン、天気情報エリアのスタイルは変更なしのため省略 --- */
+/* 基本レイアウト、ヘッダー、ボタン、天気情報エリアのスタイルは変更なしのため省略 */
 body { font-family: var(--font-family-base); margin: 0; background-color: var(--bg-color); color: var(--text-color); line-height: 1.7; }
 .container { max-width: 750px; margin: 30px auto; background-color: var(--container-bg-color); padding: 20px 30px 30px 30px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
 body.dark-mode .container { box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
@@ -136,7 +132,7 @@ body.dark-mode .bus-item.urgent .realtime-countdown { color: var(--urgent-color)
 .details.status-on-time-detail .fas { margin-right: 5px; }
 
 .status-badge { padding: 3px 8px; border-radius: 12px; font-size: 0.75em; font-weight: 600; color: #fff; text-align: center; white-space: nowrap; line-height: 1.4; }
-body.dark-mode .status-badge.status-type-delayed-possible, body.dark-mode .status-badge.status-type-delayed-explicit { color: #111; }
+body.dark-mode .status-badge.status-type-delayed-possible { color: #111; }
 .status-type-on-time { background-color: var(--indicator-green-bg); }
 .status-type-delayed-possible { background-color: var(--indicator-yellow-bg); color: #333; }
 .status-type-scheduled { background-color: #17a2b8; }
@@ -174,16 +170,9 @@ body.dark-mode .delay-chip { background-color: var(--delay-chip-bg-dark); color:
 .delay-chip .fas { color: var(--urgent-color-text); }
 body.dark-mode .delay-chip .fas { color: var(--urgent-color); }
 
-/* ishikura-via-target クラスに対する特別なスタイルはここでは定義していません。 */
-/* 必要であれば、以下のような形で背景色などを指定できます。 */
-/*
-.bus-item.ishikura-via-target {
-    background-color: var(--ishikura-via-target-bg-light);
-}
-body.dark-mode .bus-item.ishikura-via-target {
-    background-color: var(--ishikura-via-target-bg-dark);
-}
-*/
+/* ishikura-via-target クラスに対する特別なスタイルはここでは定義していません */
+/* .bus-item.ishikura-via-target {} */
+/* body.dark-mode .bus-item.ishikura-via-target {} */
 
 /* --- その他 --- */
 .error-message {color: var(--error-message-text); font-weight: bold; background-color: var(--error-message-bg); padding: 12px; border-radius: 6px; border: 1px solid var(--error-message-border);}
