@@ -220,3 +220,103 @@ if (effectiveDataUpdateInterval > 0) {
     const nextFetchInfoEl = document.getElementById('next-fetch-info-debug');
     if(nextFetchInfoEl) { if (effectiveDataUpdateInterval > 1000) { nextFetchInfoEl.textContent = `サーバーデータは約${effectiveDataUpdateInterval/1000}秒間隔で再取得します。`; } else { nextFetchInfoEl.textContent = `サーバーデータは高頻度で再取得設定です。`; } }
 } else { const nextFetchInfoEl = document.getElementById('next-fetch-info-debug'); if(nextFetchInfoEl) { nextFetchInfoEl.textContent = 'サーバーデータの自動更新は無効です。'; } }
+
+// --- 表示カスタマイズ機能 ---
+
+const displaySettingsConfig = {
+    'main-title': {
+        selector: '.main-title',
+        default: true
+    },
+    'header-info': {
+        selector: '.header-info',
+        default: true
+    },
+    'weather-info': {
+        selector: '.weather-info',
+        default: true
+    }
+};
+
+// 1. 設定を読み込んで適用する関数
+function applyDisplaySettings() {
+    const settings = getDisplaySettings();
+    for (const key in settings) {
+        if (displaySettingsConfig[key]) {
+            const element = document.querySelector(displaySettingsConfig[key].selector);
+            const checkbox = document.querySelector(`.display-toggle-cb[data-target="${key}"]`);
+            if (element) {
+                if (settings[key]) {
+                    element.classList.remove('hidden-by-user');
+                } else {
+                    element.classList.add('hidden-by-user');
+                }
+            }
+            if (checkbox) {
+                checkbox.checked = settings[key];
+            }
+        }
+    }
+}
+
+// 2. localStorageから設定を取得する関数
+function getDisplaySettings() {
+    let settings = {};
+    try {
+        const storedSettings = localStorage.getItem('busDisplaySettings');
+        if (storedSettings) {
+            settings = JSON.parse(storedSettings);
+        }
+    } catch (e) {
+        console.error('Failed to parse display settings from localStorage', e);
+    }
+    // デフォルト値で不足している設定を補う
+    for (const key in displaySettingsConfig) {
+        if (typeof settings[key] === 'undefined') {
+            settings[key] = displaySettingsConfig[key].default;
+        }
+    }
+    return settings;
+}
+
+// 3. localStorageに設定を保存する関数
+function saveDisplaySettings(key, value) {
+    const settings = getDisplaySettings();
+    settings[key] = value;
+    localStorage.setItem('busDisplaySettings', JSON.stringify(settings));
+}
+
+// --- イベントリスナーの設定 ---
+document.addEventListener('DOMContentLoaded', () => {
+    // ページ読み込み時に設定を適用
+    applyDisplaySettings();
+
+    const settingsToggleButton = document.getElementById('settings-toggle-button');
+    const settingsPanel = document.getElementById('settings-panel');
+    const toggleCheckboxes = document.querySelectorAll('.display-toggle-cb');
+
+    // 設定ボタンのクリックイベント
+    if (settingsToggleButton && settingsPanel) {
+        settingsToggleButton.addEventListener('click', (event) => {
+            event.stopPropagation(); // 親要素へのイベント伝播を停止
+            settingsPanel.classList.toggle('hidden');
+        });
+    }
+    
+    // 設定パネルの外側をクリックしたらパネルを閉じる
+    document.addEventListener('click', (event) => {
+        if (settingsPanel && !settingsPanel.contains(event.target) && !settingsToggleButton.contains(event.target)) {
+            settingsPanel.classList.add('hidden');
+        }
+    });
+
+    // チェックボックスの変更イベント
+    toggleCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            const targetKey = checkbox.dataset.target;
+            const isVisible = checkbox.checked;
+            saveDisplaySettings(targetKey, isVisible);
+            applyDisplaySettings(); // 変更を即時適用
+        });
+    });
+});
