@@ -9,9 +9,10 @@
 </head>
 <body>
     <div class="container">
+        
         <h1 class="main-title"><i class="fas fa-bus-alt"></i> バス接近情報</h1>
 
-        <div class="direction-switch-container">
+        <div class="direction-switch-container direction-switch">
             <button id="direction-switch-button">
                 <i class="fas fa-exchange-alt"></i>
                 <span id="current-direction-group-display">駅方面行き</span>
@@ -44,12 +45,14 @@
                 <label><input type="checkbox" class="display-toggle-cb" data-target="main-title"> タイトル</label>
                 <label><input type="checkbox" class="display-toggle-cb" data-target="header-info"> 時刻・サーバー状態</label>
                 <label><input type="checkbox" class="display-toggle-cb" data-target="weather-info"> 天気情報</label>
+                <label><input type="checkbox" class="display-toggle-cb" data-target="direction-switch"> 方向切替ボタン</label>
             </div>
         </div>
         <div class="theme-toggle-container">
             <button id="theme-toggle-button"><i class="fas fa-adjust"></i> テーマ切替</button>
         </div>
     </div>
+
     <div class="footer">
         <p>データ提供：神奈川中央交通</p>
         <p><a href="http://real.kanachu.jp/pc/searchapproachinfo" target="_blank" rel="noopener noreferrer">神奈川中央交通バス接近情報サイト</a></p>
