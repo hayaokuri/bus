@@ -190,3 +190,73 @@ body.dark-mode .footer a { color: var(--primary-color); }
 .route-section {margin-bottom: 30px; padding: 15px; background-color: var(--card-bg-color); border: 1px solid var(--card-border-color); border-radius: 8px;}
 body.dark-mode .route-section {border-color: var(--card-border-color);}
 .route-header {font-size: 1.3em; font-weight: bold; margin-bottom: 15px; color: var(--primary-color); border-bottom: 1px solid var(--primary-color); padding-bottom: 8px;}
+
+/* --- 表示設定UIのスタイル --- */
+.top-controls-container {
+    display: flex;
+    justify-content: flex-end; /* ボタンを右寄せに */
+    gap: 10px; /* ボタン間のスペース */
+    margin-bottom: 10px;
+}
+
+.settings-container {
+    position: relative; /* パネルの位置決めの基点 */
+}
+
+#settings-toggle-button, #theme-toggle-button {
+    background-color: var(--button-bg);
+    color: var(--button-text-color);
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s ease-in-out;
+}
+#settings-toggle-button:hover, #theme-toggle-button:hover {
+    background-color: var(--button-hover-bg);
+}
+#settings-toggle-button .fas, #theme-toggle-button .fas {
+    margin-right: 5px;
+}
+
+.settings-panel {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 5px;
+    background-color: var(--card-bg-color);
+    border: 1px solid var(--card-border-color);
+    border-radius: 8px;
+    padding: 15px;
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    width: 200px;
+    text-align: left;
+}
+.settings-panel.hidden {
+    display: none;
+}
+.settings-panel h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--card-border-color);
+    padding-bottom: 8px;
+}
+.settings-panel label {
+    display: flex; /* チェックボックスとテキストを横並び */
+    align-items: center;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+.settings-panel label:last-child {
+    margin-bottom: 0;
+}
+.settings-panel input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+/* --- カスタマイズで要素を非表示にするためのクラス --- */
+.hidden-by-user {
+    display: none !important;
+}
