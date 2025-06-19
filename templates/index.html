@@ -47,7 +47,6 @@
     </div>
 
     <script>
-        // Flaskのconfigから値を受け取り、グローバルJavaScript変数として定義
         const DATA_UPDATE_INTERVAL = parseInt("{{ config.get('ACTIVE_DATA_FETCH_INTERVAL', 10) }}", 10) * 1000;
     </script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
