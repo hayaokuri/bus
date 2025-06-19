@@ -9,10 +9,21 @@
 </head>
 <body>
     <div class="container">
-        <div class="theme-toggle-container">
-            <button id="theme-toggle-button"><i class="fas fa-adjust"></i> テーマ切替</button>
+        <div class="top-controls-container">
+            <div class="settings-container">
+                <button id="settings-toggle-button"><i class="fas fa-cog"></i> 表示設定</button>
+                <div id="settings-panel" class="settings-panel hidden">
+                    <h4>表示のカスタマイズ</h4>
+                    <label><input type="checkbox" class="display-toggle-cb" data-target="main-title"> タイトル</label>
+                    <label><input type="checkbox" class="display-toggle-cb" data-target="header-info"> 時刻・サーバー状態</label>
+                    <label><input type="checkbox" class="display-toggle-cb" data-target="weather-info"> 天気情報</label>
+                </div>
+            </div>
+            <div class="theme-toggle-container">
+                <button id="theme-toggle-button"><i class="fas fa-adjust"></i> テーマ切替</button>
+            </div>
         </div>
-        <h1><i class="fas fa-bus-alt"></i> バス接近情報</h1>
+        <h1 class="main-title"><i class="fas fa-bus-alt"></i> バス接近情報</h1>
 
         <div class="direction-switch-container">
             <button id="direction-switch-button">
