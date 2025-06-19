@@ -1,5 +1,4 @@
 // static/js/main.js
-// (updateCurrentTime, theme toggle, direction switch, getWeatherIconClass, formatSecondsToCountdown は変更なし)
 function updateCurrentTime() {
     const timeDisplay = document.getElementById('current-time-display');
     if (timeDisplay) {
@@ -73,7 +72,6 @@ function formatSecondsToCountdown(seconds, originStopNameShort) {
 }
 
 function updateAllBusCountdowns() {
-    // (変更なし)
     const currentTime = new Date();
     for (const displayGroupId in activeRoutesData) {
         if (activeRoutesData.hasOwnProperty(displayGroupId)) {
@@ -112,13 +110,12 @@ function updateAllBusCountdowns() {
 }
 
 async function fetchAndUpdateData() {
-    // (表示ロジックの時刻とステータス部分を調整)
     try {
         const response = await fetch(`/api/data?direction_group=${currentDirectionGroup}`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         const serverStatusIndicator = document.getElementById('server-status-indicator'); const serverStatusText = document.getElementById('server-status-text');
-        if (data.system_status) { if (data.system_status.healthy) { serverStatusIndicator.className = 'indicator green'; serverStatusText.textContent = '正常'; } else if (data.system_status.warning) { serverStatusIndicator.className = 'indicator yellow'; serverStatusText.textContent = '一部注意'; } else { server_status_indicator.className = 'indicator red'; serverStatusText.textContent = 'エラー'; } }
+        if (data.system_status) { if (data.system_status.healthy) { serverStatusIndicator.className = 'indicator green'; serverStatusText.textContent = '正常'; } else if (data.system_status.warning) { serverStatusIndicator.className = 'indicator yellow'; serverStatusText.textContent = '一部注意'; } else { serverStatusIndicator.className = 'indicator red'; serverStatusText.textContent = 'エラー'; } }
         else { serverStatusIndicator.className = 'indicator red'; serverStatusText.textContent = '状態不明'; }
         const weatherInfoArea = document.getElementById('weather-info-area'); let weatherHtml = '';
         if (data.weather_data) { if (data.weather_data.error_message) { weatherHtml = `<p class="error-message"><i class="fas fa-exclamation-triangle"></i> 天気情報取得エラー: ${data.weather_data.error_message}</p>`; } else if (data.weather_data.condition && data.weather_data.temp_c !== undefined) { const weatherIconClass = getWeatherIconClass(data.weather_data.condition_code); weatherHtml = `<p><i class="fas ${weatherIconClass}"></i> <strong>現在の天気:</strong> ${data.weather_data.description} (${data.weather_data.temp_c}°C)</p>`; if (data.weather_data.is_rain) { weatherHtml += `<p class="urgent-text"><i class="fas fa-umbrella"></i> 雨が降っています。お出かけの際は足元にご注意ください。</p>`; } } else { weatherHtml = `<p><i class="fas fa-question-circle"></i> 天気情報を取得できませんでした。</p>`; } }
@@ -146,23 +143,23 @@ async function fetchAndUpdateData() {
                             let departureTimeMain = bus.departure_time || "時刻不明";
                             if (bus.status_text && (bus.status_text.toLowerCase().includes("まもなく") || bus.status_text.toLowerCase().includes("出発しました") || bus.status_text.toLowerCase().includes("通過しました"))) {
                                 const timeMatch = departureTimeMain.match(/\d{1,2}:\d{2}/);
-                                departureTimeMain = timeMatch ? timeMatch[0] + "発" : ""; // 時刻があればそれだけ、なければ空
-                            } else if (departureTimeMain === "情報なし" || departureTimeMain === "時刻不明") { /* そのまま表示 */ }
+                                departureTimeMain = timeMatch ? timeMatch[0] + "発" : "";
+                            } else if (departureTimeMain === "情報なし" || departureTimeMain === "時刻不明") {}
                             else if (!departureTimeMain.includes("発") && !departureTimeMain.includes("着予定") && /\d{1,2}:\d{2}/.test(departureTimeMain)) {
-                                departureTimeMain += "発"; // "発" がなければ補う (ただし "着予定" は除く)
+                                departureTimeMain += "発";
                             }
 
                             let statusLabel = ''; let statusType = ''; let isTrulyUrgent = bus.is_urgent; let isDeparted = false;
                             if (bus.status_text) {
                                 if (bus.status_text.includes("出発しました") || bus.status_text.includes("通過しました") || bus.status_text.includes("発車済みの恐れあり")) { statusLabel = '出発済み'; statusType = 'departed'; isDeparted = true; }
                                 else if (bus.status_text.toLowerCase().includes("まもなく")) { statusLabel = 'まもなく発車'; statusType = 'soon'; isTrulyUrgent = true; }
-                                else if (!bus.delay_info) { // 遅延情報がない場合のみ、他のステータスを考慮
+                                else if (!bus.delay_info) {
                                     if (bus.status_text.includes("(予定通り)")) { statusLabel = '予定通り'; statusType = 'on-time'; }
                                     else if (bus.status_text.includes("(遅延可能性あり)")) { statusLabel = '遅延可能性あり'; statusType = 'delayed-possible'; }
                                     else if (bus.status_text.includes("(予定)")) { statusLabel = '予定'; statusType = 'scheduled'; }
                                 }
                             }
-
+                            
                             let itemAdditionalClass = ''; let destinationDisplay = bus.destination_name ? `${bus.destination_name}行` : '行き先不明';
                             let sannoOriginChipHtml = ''; let ishikuraOriginChipHtml = ''; let ishikuraRelatedChipHtml = ''; let delayChipHtml = '';
 
