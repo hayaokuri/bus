@@ -280,7 +280,7 @@ def api_data():
             
             processed_buses_for_display_group.sort(key=lambda b: (b[KEY_SECONDS_UNTIL_DEPARTURE] == -1, b[KEY_SECONDS_UNTIL_DEPARTURE] if b[KEY_SECONDS_UNTIL_DEPARTURE] != -1 else float('inf')))
             all_routes_bus_data['to_station_combined'] = {
-                "from_stop_name": "大学・石倉発", "to_stop_name": "駅",
+                "from_stop_name": "大学・石倉", "to_stop_name": "駅",
                 "buses_to_display": processed_buses_for_display_group[:MAX_BUSES_TO_FETCH],
                 "bus_error_message": "、".join(combined_errors_for_group_api) if combined_errors_for_group_api else None,
                 "bus_last_updated_str": datetime.datetime.fromtimestamp(latest_bus_update_time_for_group, TOKYO_TZ).strftime('%H:%M:%S') if latest_bus_update_time_for_group > 0 else "N/A",
